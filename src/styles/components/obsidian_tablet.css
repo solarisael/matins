@@ -1,3 +1,49 @@
+#sol_side_menu {
+  --obsidian-drift-duration: 28s;
+}
+
+/* The glass canvas and DOM viewport must move together to preserve cached shader coordinates. */
+sol-obsidian-tablet,
+[data-obsidian-surface],
+[data-portal-ink] {
+  --obsidian-drift-x: 0.18rem;
+  --obsidian-drift-y: 0.23rem;
+  translate: 0 0;
+  animation: obsidian-drift var(--obsidian-drift-duration) ease-in-out infinite
+    paused;
+}
+[data-portal-ink] {
+  --obsidian-drift-x: 0.11rem;
+  --obsidian-drift-y: 0.14rem;
+}
+#sol_side_menu[data-portal-phase="artifact"]
+  :is(sol-obsidian-tablet, [data-obsidian-surface], [data-portal-ink]) {
+  animation-play-state: running;
+}
+
+@keyframes obsidian-drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  20% {
+    translate: calc(var(--obsidian-drift-x) * 0.7)
+      calc(var(--obsidian-drift-y) * -1);
+  }
+  45% {
+    translate: calc(var(--obsidian-drift-x) * -1)
+      calc(var(--obsidian-drift-y) * -0.2);
+  }
+  70% {
+    translate: calc(var(--obsidian-drift-x) * -0.25)
+      calc(var(--obsidian-drift-y) * 0.8);
+  }
+  86% {
+    translate: calc(var(--obsidian-drift-x) * 0.6)
+      calc(var(--obsidian-drift-y) * 0.4);
+  }
+}
+
 sol-obsidian-tablet {
   --obsidian-rim-width: 12px;
   --obsidian-halo: 4rem;

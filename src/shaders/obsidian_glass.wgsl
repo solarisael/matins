@@ -14,21 +14,78 @@ struct Glass {
 @group(0) @binding(4) var emission_field: texture_2d<f32>;
 @group(0) @binding(5) var fog_field: texture_2d<f32>;
 
+struct Current {
+  near_offset: vec2f,
+  far_offset: vec2f,
+  weights: vec2f,
+  gradient: vec2f,
+  height: f32,
+}
+var<private> current: Current;
+
+fn sample_current(point: vec2f) -> Current {
+  let world = point / 1920.0 + glass.field_offset;
+  let seed = textureSampleLevel(fog_field, field_sampler, world * 1.3, 0.0).rgb;
+  let detail = textureSampleLevel(fog_field, field_sampler, world * 2.3 + vec2f(0.37, 0.61), 0.0).rgb;
+  let angle_a = seed.r * 12.5663706;
+  let angle_b = detail.g * 12.5663706;
+  let direction_a = vec2f(cos(angle_a), sin(angle_a));
+  let direction_b = vec2f(cos(angle_b), sin(angle_b));
+  let near_offset = direction_a * sin(glass.time * 0.1 + seed.b * 6.2831853) * 0.095
+    + direction_b * cos(glass.time * 0.07 + seed.r * 6.2831853) * 0.045;
+  let far_offset = direction_b * sin(glass.time * 0.065 + detail.b * 6.2831853) * 0.038
+    + direction_a * cos(glass.time * 0.09 + detail.r * 6.2831853) * 0.025 + vec2f(0.65, 0.41);
+  let phase_a = dot(point, direction_a) * 0.018 - glass.time * (0.21 + seed.g * 0.17) + seed.r * 6.2831853;
+  let phase_b = dot(point, direction_b) * 0.031 + glass.time * 0.13 + detail.b * 6.2831853;
+  let height = 0.5 + 0.5 * (sin(phase_a) * 0.6 + sin(phase_b) * 0.4);
+  let gradient = direction_a * cos(phase_a) * 0.6 + direction_b * cos(phase_b) * 0.4;
+  let heights = textureSampleLevel(
+    fog_field, field_sampler, world + near_offset * 0.3 + vec2f(glass.time * 0.001), 0.0
+  ).rg;
+  let overlap = smoothstep(-0.12, 0.12, heights.r - heights.g + (height - 0.5) * 0.16);
+  return Current(
+    near_offset, far_offset,
+    vec2f(mix(0.55, 1.0, overlap), mix(0.4, 0.1, overlap)),
+    gradient, height
+  );
+}
+
 fn film(color: vec3f) -> vec3f {
   return vec3f(1.0) - exp(-color);
 }
 
 // Keep optical distances in the original units while the baked world spans three tiles.
 fn fracture_at(uv: vec2f) -> vec4f {
-  return textureSampleLevel(fracture_field, field_sampler, uv / 3.0 + glass.field_offset, 0.0);
+  let near_layer = textureSampleLevel(
+    fracture_field, field_sampler, (uv + current.near_offset) / 3.0 + glass.field_offset, 0.0
+  );
+  let far_layer = textureSampleLevel(
+    fracture_field, field_sampler, (uv + current.far_offset) / 3.0 + glass.field_offset, 0.0
+  );
+  let near_light = near_layer.rgb * current.weights.x;
+  let far_light = far_layer.rgb * current.weights.y;
+  let orientation = select(far_layer.a, near_layer.a, max(near_light.r, near_light.g) >= max(far_light.r, far_light.g));
+  return vec4f(near_light + far_light, orientation);
 }
 
 fn diffuse_at(uv: vec2f) -> vec3f {
-  return textureSampleLevel(diffuse_field, field_sampler, uv / 3.0 + glass.field_offset, 0.0).rgb;
+  let near_light = textureSampleLevel(
+    diffuse_field, field_sampler, (uv + current.near_offset) / 3.0 + glass.field_offset, 0.0
+  ).rgb;
+  let far_light = textureSampleLevel(
+    diffuse_field, field_sampler, (uv + current.far_offset) / 3.0 + glass.field_offset, 0.0
+  ).rgb;
+  return near_light * current.weights.x + far_light * current.weights.y;
 }
 
 fn emission_at(uv: vec2f) -> vec3f {
-  return textureSampleLevel(emission_field, field_sampler, uv / 3.0 + glass.field_offset, 0.0).rgb;
+  let near_light = textureSampleLevel(
+    emission_field, field_sampler, (uv + current.near_offset) / 3.0 + glass.field_offset, 0.0
+  ).rgb;
+  let far_light = textureSampleLevel(
+    emission_field, field_sampler, (uv + current.far_offset) / 3.0 + glass.field_offset, 0.0
+  ).rgb;
+  return near_light * current.weights.x + far_light * current.weights.y;
 }
 
 fn emission_energy(uv: vec2f) -> f32 {
@@ -56,8 +113,7 @@ fn smoke_field(world_uv: vec2f) -> vec3f {
 }
 
 fn atmosphere(field_uv: vec2f, energy: f32, diffused: vec3f, distance: f32) -> vec4f {
-  let world_uv = field_uv - vec2f(glass.time * 0.012, glass.time * -0.007)
-    + (glass.tablet_origin + glass.tablet_size * 0.5) / 640.0;
+  let world_uv = field_uv + (glass.tablet_origin + glass.tablet_size * 0.5) / 640.0;
   let smoke = smoke_field(world_uv);
   let reach = max(glass.halo, 1.0);
   let wave = 0.5 + 0.5 * sin(distance / reach * 7.0 - glass.time * 0.37 + smoke.y * 9.0);
@@ -68,6 +124,24 @@ fn atmosphere(field_uv: vec2f, energy: f32, diffused: vec3f, distance: f32) -> v
   let shadow = density * envelope * (1.0 - illumination) * 0.28;
   let tint = mix(vec3f(0.95, 0.92, 0.8), film(diffused * 4.0), 0.25);
   return vec4f(tint * scattered, scattered + shadow * (1.0 - scattered));
+}
+
+fn water_spill(mist: vec4f, field_uv: vec2f, normal: vec2f, distance: f32) -> vec4f {
+  let crest = smoothstep(0.56, 0.88, current.height);
+  let reach = max(glass.halo, 1.0) * 0.5 * crest;
+  if (reach < 0.75) {
+    return mist;
+  }
+  let profile = 1.0 - smoothstep(max(reach - 2.0, 0.0), reach + 2.0, distance);
+  let lip = exp(-abs(distance - reach) / 1.1);
+  let bent_uv = field_uv + current.gradient * 0.009 + normal * crest * 0.012;
+  let illumination = smoothstep(0.04, 0.65, emission_energy(bent_uv));
+  let body_alpha = profile * crest * 0.2;
+  let glint_alpha = lip * crest * illumination * 0.28;
+  let transmitted = film(fracture_at(bent_uv).rgb * 0.22);
+  let color = transmitted * body_alpha * (1.0 - glint_alpha) + vec3f(0.97, 0.95, 0.86) * glint_alpha;
+  let alpha = body_alpha + glint_alpha * (1.0 - body_alpha);
+  return vec4f(color + mist.rgb * (1.0 - alpha), alpha + mist.a * (1.0 - alpha));
 }
 
 fn basin_surface(
@@ -84,7 +158,8 @@ fn basin_surface(
     cos(local.x * 0.019 - glass.time * 0.13 + sin(local.y * 0.011))
   );
   let curved_uv = field_uv - edge_normal * slope * 0.035
-    + vec2f(0.0, depth * 0.018) + ripple * mix(0.004, 0.009, depth);
+    + vec2f(0.0, depth * 0.018) + ripple * mix(0.004, 0.009, depth)
+    + current.gradient * depth * 0.006;
   let transmission = fracture_at(curved_uv).rgb;
   let reflection = fracture_at(field_uv + edge_normal * slope * 0.024 - ripple * 0.005).rgb;
   let red = fracture_at(curved_uv + ripple * 0.001).r;
@@ -92,13 +167,15 @@ fn basin_surface(
   let inward_light = max(dot(-edge_normal, normalize(vec2f(-0.6, -0.8))), 0.0);
   let edge_glint = exp(-inner_distance / 1.1)
     + exp(-abs(inner_distance - wall_width) / 1.2);
+  let waterline = wall_width * (1.0 - current.height * 0.7);
+  let water_glint = exp(-abs(inner_distance - waterline) / 1.3) * current.height;
   let contact_shadow = exp(-inner_distance / (wall_width * 0.7))
     * mix(0.5, 0.2, inward_light);
   let fresnel = 0.07 + edge_glint * 0.3;
   let stone = mix(vec3f(0.009, 0.007, 0.015), vec3f(0.004, 0.005, 0.009), depth);
   let radiance = stone + vec3f(red, transmission.g, blue) * mix(0.56, 0.38, depth)
     + reflection * fresnel * 0.45 + diffused * 0.08
-    + vec3f(0.12, 0.115, 0.1) * edge_glint
+    + vec3f(0.12, 0.115, 0.1) * (edge_glint + water_glint * 0.3)
       * smoothstep(0.06, 0.5, emission_energy(curved_uv));
   let glass_color = film(radiance) * (1.0 - contact_shadow) * (1.0 - slope * 0.18);
 
@@ -129,8 +206,8 @@ fn basin_surface(
   if (outside_distance > max(glass.halo, 1.0) * 4.0) {
     return vec4f(0.0);
   }
-  let drift = vec2f(glass.time * 0.012, glass.time * -0.007);
-  let field_uv = centered / 640.0 + drift;
+  current = sample_current(centered);
+  let field_uv = centered / 640.0;
   let diffused = diffuse_at(field_uv);
 
 
@@ -147,7 +224,7 @@ fn basin_surface(
     sin(surface_local.y * 0.032 + sin(surface_local.x * 0.015)),
     cos(surface_local.x * 0.029 + sin(surface_local.y * 0.018))
   );
-  let refraction = surface_centered / 640.0 + drift
+  let refraction = surface_centered / 640.0
     + edge_normal * bevel * 0.022 + ripple * 0.006;
 
   if (outside_distance > 0.0) {
@@ -158,9 +235,9 @@ fn basin_surface(
     let jet_uv = refraction - tangent * outside_distance * lean / 640.0;
     let edge_light = emission_at(jet_uv);
     let energy = max(max(edge_light.r, edge_light.g), edge_light.b);
-    let mist = atmosphere(
+    let mist = water_spill(atmosphere(
       field_uv, emission_energy(mix(refraction, field_uv, 0.35)), diffused, outside_distance
-    );
+    ), field_uv, edge_normal, outside_distance);
     let center_log = log(max(energy, 0.0001));
     let minus_log = log(max(emission_energy(jet_uv - tangent * 3.0 / 640.0), 0.0001));
     let plus_log = log(max(emission_energy(jet_uv + tangent * 3.0 / 640.0), 0.0001));
