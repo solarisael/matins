@@ -1,0 +1,85 @@
+---
+import "../../styles/components/tablet_frame.css";
+import { with_base } from "../../utils/routes.js";
+
+const corners = ["top-left", "top-right", "bottom-left", "bottom-right"];
+const seams = [
+  {
+    side: "top",
+    viewBox: "0 0 1000 40",
+    path: "M0 22 H100 L126 12 H225 L252 27 H410 L440 18 H575 L600 29 H735 L766 13 H895 L920 22 H1000",
+  },
+  {
+    side: "right",
+    viewBox: "0 0 40 1000",
+    path: "M20 0 V130 L29 155 V270 L13 300 V435 L23 465 V605 L11 636 V780 L26 810 V920 L20 948 V1000",
+  },
+  {
+    side: "bottom",
+    viewBox: "0 0 1000 40",
+    path: "M0 17 H120 L151 28 H290 L320 14 H455 L486 24 H615 L650 11 H785 L812 27 H910 L940 17 H1000",
+  },
+  {
+    side: "left",
+    viewBox: "0 0 40 1000",
+    path: "M18 0 V95 L28 125 V245 L12 276 V390 L24 420 V570 L14 600 V725 L29 756 V895 L18 925 V1000",
+  },
+];
+---
+
+<sol-tablet-frame aria-hidden="true">
+  {
+    seams.map(({ side, viewBox, path }) => (
+      <svg
+        class={`sol__tablet_seam sol__tablet_seam--${side}`}
+        viewBox={viewBox}
+        preserveAspectRatio="none"
+        focusable="false"
+      >
+        <path
+          class="sol__tablet_seam_engraving"
+          d={path}
+          vector-effect="non-scaling-stroke"
+        />
+        <path
+          class="sol__tablet_seam_light"
+          d={path}
+          pathLength="100"
+          vector-effect="non-scaling-stroke"
+        />
+      </svg>
+    ))
+  }
+  {
+    corners.map((corner) => (
+      <img
+        class={`sol__tablet_corner sol__tablet_corner--${corner}`}
+        src={with_base("ornaments/reliquary/card_corner.svg")}
+        alt=""
+        width="79"
+        height="89"
+        draggable="false"
+      />
+    ))
+  }
+</sol-tablet-frame>
+
+<script>
+  if (!customElements.get("sol-tablet-frame")) {
+    customElements.define(
+      "sol-tablet-frame",
+      class extends HTMLElement {
+        on_visibility = () => {
+          this.dataset.pageVisible = String(!document.hidden);
+        };
+        connectedCallback() {
+          this.on_visibility();
+          document.addEventListener("visibilitychange", this.on_visibility);
+        }
+        disconnectedCallback() {
+          document.removeEventListener("visibilitychange", this.on_visibility);
+        }
+      },
+    );
+  }
+</script>

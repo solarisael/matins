@@ -1,0 +1,117 @@
+sol-tablet-frame {
+  --tablet-rail: clamp(1.5rem, 3vw, 2.5rem);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template:
+    "top-left top top-right" var(--tablet-rail)
+    "left . right" minmax(0, 1fr)
+    "bottom-left bottom bottom-right" var(--tablet-rail)
+    / var(--tablet-rail) minmax(0, 1fr) var(--tablet-rail);
+  pointer-events: none;
+  user-select: none;
+}
+sol-tablet-frame::before,
+sol-tablet-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0.25rem;
+  border: 1px solid #dabd7c55;
+}
+sol-tablet-frame::after {
+  inset: calc(var(--tablet-rail) - 0.25rem);
+  border-color: #dabd7c38;
+}
+
+.sol__tablet_corner {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.95;
+}
+.sol__tablet_corner--top-left {
+  grid-area: top-left;
+}
+.sol__tablet_corner--top-right {
+  grid-area: top-right;
+  transform: scaleX(-1);
+}
+.sol__tablet_corner--bottom-left {
+  grid-area: bottom-left;
+  transform: scaleY(-1);
+}
+.sol__tablet_corner--bottom-right {
+  grid-area: bottom-right;
+  transform: scale(-1);
+}
+
+.sol__tablet_seam {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  fill: none;
+  stroke-linejoin: bevel;
+}
+.sol__tablet_seam--top {
+  grid-area: top;
+}
+.sol__tablet_seam--right {
+  grid-area: right;
+  --seam-delay: -5s;
+  --seam-duration: 19s;
+}
+.sol__tablet_seam--bottom {
+  grid-area: bottom;
+  --seam-delay: -9s;
+  --seam-duration: 17s;
+}
+.sol__tablet_seam--left {
+  grid-area: left;
+  --seam-delay: -3s;
+  --seam-duration: 23s;
+}
+.sol__tablet_seam_engraving {
+  stroke: #b18e4e;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.sol__tablet_seam_light {
+  stroke: #f4dca0;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3 1 29 2 60;
+  opacity: 0.7;
+  animation: tablet-seam-flow var(--seam-duration, 21s) linear
+    var(--seam-delay, 0s) infinite;
+  animation-play-state: paused;
+}
+#sol_side_menu[data-side-menu-open="true"][data-portal-phase="artifact"]
+  sol-tablet-frame[data-page-visible="true"]
+  .sol__tablet_seam_light {
+  animation-play-state: running;
+}
+
+@keyframes tablet-seam-flow {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.35;
+  }
+  35% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sol__tablet_seam_light {
+    animation: none;
+  }
+}

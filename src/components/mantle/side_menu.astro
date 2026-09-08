@@ -5,9 +5,9 @@ import {
   WRITING_PHASE_NAV_ITEMS,
 } from "../../data/site_nav.js";
 import RitualSeparator from "../ornament/ritual_separator.astro";
+import Inscription from "../ornament/inscription.astro";
+import ObsidianTablet from "../ornament/obsidian_tablet.astro";
 import { with_base } from "../../utils/routes.js";
-
-const side_menu_corner_src = with_base("ornaments/reliquary/card_corner.svg");
 
 const site_theme_options = [
   {
@@ -110,281 +110,273 @@ const user_measure_options = [
     <span class="sol__side_menu_trigger_label">menu</span>
   </button>
 
-  <aside
+  <dialog
     id="sol_side_menu_panel"
     role="dialog"
     aria-labelledby="sol_side_menu_title"
-    aria-hidden="true"
+    aria-modal="true"
     data-side-menu-panel-shell
   >
-    <div class="sol__side_menu_frame" aria-hidden="true">
-      <img
-        class="sol__side_menu_corner sol__side_menu_corner_tl"
-        src={side_menu_corner_src}
-        alt=""
-      />
-      <img
-        class="sol__side_menu_corner sol__side_menu_corner_tr"
-        src={side_menu_corner_src}
-        alt=""
-      />
-      <img
-        class="sol__side_menu_corner sol__side_menu_corner_bl"
-        src={side_menu_corner_src}
-        alt=""
-      />
-      <img
-        class="sol__side_menu_corner sol__side_menu_corner_br"
-        src={side_menu_corner_src}
-        alt=""
-      />
-    </div>
+    <canvas data-portal-ink aria-hidden="true"></canvas>
 
-    <div id="sol_side_menu_panel_scroll">
-      <div id="sol_side_menu_panel_header">
-        <p id="sol_side_menu_title" class="sol__text_caption">Solarisael</p>
-        <button
-          type="button"
-          data-side-menu-close
-          aria-label="Close Solarisael menu"
-        >
-          close
-        </button>
-      </div>
+    <ObsidianTablet>
+      <canvas slot="scene" data-portal-canvas aria-hidden="true"></canvas>
+      <div id="sol_side_menu_panel_scroll">
+        <div data-portal-aperture aria-hidden="true"></div>
+        <div id="sol_side_menu_panel_header">
+          <p id="sol_side_menu_title" class="sol__text_caption">Solarisael</p>
+          <button
+            type="button"
+            data-side-menu-close
+            aria-label="Close Solarisael menu"
+          >
+            close
+          </button>
+        </div>
 
-      <RitualSeparator />
+        <RitualSeparator />
 
-      <div id="sol_side_menu_viewport">
-        <section
-          class="sol__side_menu_view"
-          data-side-menu-view-page="root"
-          data-view-position="active"
-          aria-hidden="false"
-        >
-          <h2 class="sr-only">Site navigation</h2>
-          <nav id="sol_side_menu_routes" aria-label="Site navigation">
-            <div class="sol__side_menu_current" data-phase="home">
-              <span class="sol__text_kicker">current place</span>
-              <strong data-side-menu-current aria-live="polite">hearth</strong>
-            </div>
+        <div id="sol_side_menu_viewport">
+          <section
+            class="sol__side_menu_view"
+            data-side-menu-view-page="root"
+            data-view-position="active"
+            aria-hidden="false"
+          >
+            <h2 class="sr-only">Site navigation</h2>
+            <nav id="sol_side_menu_routes" aria-label="Site navigation">
+              <div class="sol__side_menu_current" data-phase="home">
+                <span class="sol__text_kicker">current place</span>
+                <strong data-side-menu-current aria-live="polite">hearth</strong
+                >
+              </div>
 
-            <ul class="sol__side_menu_route_list">
-              {
-                SITE_NAV_ITEMS.map((nav_item) => (
-                  <li>
-                    <a
-                      class="sol__side_menu_route"
-                      data-side-menu-route
-                      data-nav-label={nav_item.label}
-                      data-phase={nav_item.phase}
-                      href={with_base(nav_item.href)}
-                      hx-get={with_base(nav_item.href)}
-                    >
-                      <span>{nav_item.label}</span>
-                      <small>{nav_item.description}</small>
-                    </a>
-                  </li>
-                ))
-              }
-            </ul>
-
-            <RitualSeparator />
-
-            <div class="sol__side_menu_phase_routes">
-              <p class="sol__text_kicker">writing gates</p>
-              <ul>
+              <ul class="sol__side_menu_route_list">
                 {
-                  WRITING_PHASE_NAV_ITEMS.map((nav_item) => (
+                  SITE_NAV_ITEMS.map((nav_item) => (
                     <li>
                       <a
-                        class="sol__side_menu_phase_route"
+                        class="sol__side_menu_route"
                         data-side-menu-route
                         data-nav-label={nav_item.label}
                         data-phase={nav_item.phase}
                         href={with_base(nav_item.href)}
                         hx-get={with_base(nav_item.href)}
                       >
-                        {nav_item.label}
+                        <Inscription text={nav_item.label} manual />
+                        <small>{nav_item.description}</small>
                       </a>
                     </li>
                   ))
                 }
               </ul>
-            </div>
-          </nav>
 
-          <RitualSeparator />
+              <RitualSeparator />
 
-          <button
-            class="sol__side_menu_state_link"
-            type="button"
-            data-side-menu-view-target="settings"
-            data-side-menu-view-focus
-            aria-controls="sol_side_menu_view_settings"
-          >
-            <span>
-              <strong>site settings</strong>
-              <small>appearance, reading, and this local profile</small>
-            </span>
-            <span aria-hidden="true">›</span>
-          </button>
-        </section>
+              <div class="sol__side_menu_phase_routes">
+                <p class="sol__text_kicker">writing gates</p>
+                <ul>
+                  {
+                    WRITING_PHASE_NAV_ITEMS.map((nav_item) => (
+                      <li>
+                        <a
+                          class="sol__side_menu_phase_route"
+                          data-side-menu-route
+                          data-nav-label={nav_item.label}
+                          data-phase={nav_item.phase}
+                          href={with_base(nav_item.href)}
+                          hx-get={with_base(nav_item.href)}
+                        >
+                          {nav_item.label}
+                        </a>
+                      </li>
+                    ))
+                  }
+                </ul>
+              </div>
+            </nav>
 
-        <section
-          id="sol_side_menu_view_settings"
-          class="sol__side_menu_view"
-          data-side-menu-view-page="settings"
-          data-view-position="after"
-          aria-labelledby="sol_side_menu_settings_title"
-          aria-hidden="true"
-          inert
-        >
-          <div class="sol__side_menu_view_header">
+            <RitualSeparator />
+
             <button
-              class="sol__side_menu_back"
+              class="sol__side_menu_state_link"
               type="button"
-              data-side-menu-view-target="root"
+              data-side-menu-view-target="settings"
               data-side-menu-view-focus
-              aria-controls="sol_side_menu_routes"
+              aria-controls="sol_side_menu_view_settings"
             >
-              <span aria-hidden="true">‹</span>
-              back
-            </button>
-            <div>
-              <p class="sol__text_kicker">inner chamber</p>
-              <h2 id="sol_side_menu_settings_title">Site settings</h2>
-            </div>
-          </div>
-
-          <p class="sol__side_menu_note">
-            Tune the shell without moving the page out from under your eyes.
-          </p>
-
-          <RitualSeparator />
-
-          <div class="sol__side_menu_settings_section">
-            <h3>Appearance</h3>
-            <label class="sol__side_menu_group" for="sol_side_menu_theme">
-              <span class="sol__side_menu_label sol__text_caption">theme</span>
-              <select id="sol_side_menu_theme" data-site-theme-control>
-                {
-                  site_theme_options.map((theme_option) => (
-                    <option value={theme_option.value}>
-                      {theme_option.label}
-                    </option>
-                  ))
-                }
-              </select>
-            </label>
-
-            <label class="sol__side_menu_group" for="sol_side_menu_fx">
-              <span class="sol__side_menu_label sol__text_caption">
-                intensity
+              <span>
+                <strong>site settings</strong>
+                <small>appearance, reading, and this local profile</small>
               </span>
-              <select id="sol_side_menu_fx" data-site-fx-control>
-                {
-                  site_fx_options.map((fx_option) => (
-                    <option value={fx_option.value}>{fx_option.label}</option>
-                  ))
-                }
-              </select>
-            </label>
-
-            <label class="sol__side_menu_group" for="sol_side_menu_shell">
-              <span class="sol__side_menu_label sol__text_caption">shell</span>
-              <select id="sol_side_menu_shell" data-site-shell-control>
-                {
-                  site_shell_options.map((shell_option) => (
-                    <option value={shell_option.value}>
-                      {shell_option.label}
-                    </option>
-                  ))
-                }
-              </select>
-            </label>
-
-            <label class="sol__side_menu_group" for="sol_side_menu_scale">
-              <span class="sol__side_menu_label sol__text_caption">scale</span>
-              <select id="sol_side_menu_scale" data-site-scale-control>
-                {
-                  site_scale_options.map((scale_option) => (
-                    <option value={scale_option.value}>
-                      {scale_option.label}
-                    </option>
-                  ))
-                }
-              </select>
-            </label>
-          </div>
-
-          <RitualSeparator />
-
-          <div class="sol__side_menu_settings_section">
-            <h3>Reading</h3>
-            <p class="sol__side_menu_note">
-              Preferences that follow the reader, not the page.
-            </p>
-
-            <label class="sol__side_menu_group" for="sol_side_menu_text">
-              <span class="sol__side_menu_label sol__text_caption">text</span>
-              <select id="sol_side_menu_text" data-user-text-control>
-                {
-                  user_text_options.map((text_option) => (
-                    <option value={text_option.value}>
-                      {text_option.label}
-                    </option>
-                  ))
-                }
-              </select>
-            </label>
-
-            <label class="sol__side_menu_group" for="sol_side_menu_measure">
-              <span class="sol__side_menu_label sol__text_caption">measure</span
-              >
-              <select id="sol_side_menu_measure" data-user-measure-control>
-                {
-                  user_measure_options.map((measure_option) => (
-                    <option value={measure_option.value}>
-                      {measure_option.label}
-                    </option>
-                  ))
-                }
-              </select>
-            </label>
-          </div>
-
-          <RitualSeparator />
-
-          <div class="sol__side_menu_settings_section">
-            <h3>Local profile</h3>
-            <p class="sol__side_menu_note">
-              Browser-local only. No fake login, no pretend cloud account.
-            </p>
-
-            <dl class="sol__side_menu_status_list">
-              <div>
-                <dt>profile</dt>
-                <dd>local visitor</dd>
-              </div>
-              <div>
-                <dt>storage</dt>
-                <dd>browser cookies</dd>
-              </div>
-            </dl>
-
-            <button
-              type="button"
-              class="sol__side_menu_reset"
-              data-side-menu-reset
-            >
-              reset local preferences
+              <span aria-hidden="true">›</span>
             </button>
-          </div>
-        </section>
+          </section>
+
+          <section
+            id="sol_side_menu_view_settings"
+            class="sol__side_menu_view"
+            data-side-menu-view-page="settings"
+            data-view-position="after"
+            aria-labelledby="sol_side_menu_settings_title"
+            aria-hidden="true"
+            inert
+          >
+            <div class="sol__side_menu_view_header">
+              <button
+                class="sol__side_menu_back"
+                type="button"
+                data-side-menu-view-target="root"
+                data-side-menu-view-focus
+                aria-controls="sol_side_menu_routes"
+              >
+                <span aria-hidden="true">‹</span>
+                back
+              </button>
+              <div>
+                <p class="sol__text_kicker">inner chamber</p>
+                <h2 id="sol_side_menu_settings_title">Site settings</h2>
+              </div>
+            </div>
+
+            <p class="sol__side_menu_note">
+              Tune the shell without moving the page out from under your eyes.
+            </p>
+
+            <RitualSeparator />
+
+            <div class="sol__side_menu_settings_section">
+              <h3>Appearance</h3>
+              <label class="sol__side_menu_group" for="sol_side_menu_theme">
+                <span class="sol__side_menu_label sol__text_caption">theme</span
+                >
+                <select id="sol_side_menu_theme" data-site-theme-control>
+                  {
+                    site_theme_options.map((theme_option) => (
+                      <option value={theme_option.value}>
+                        {theme_option.label}
+                      </option>
+                    ))
+                  }
+                </select>
+              </label>
+
+              <label class="sol__side_menu_group" for="sol_side_menu_fx">
+                <span class="sol__side_menu_label sol__text_caption">
+                  intensity
+                </span>
+                <select id="sol_side_menu_fx" data-site-fx-control>
+                  {
+                    site_fx_options.map((fx_option) => (
+                      <option value={fx_option.value}>{fx_option.label}</option>
+                    ))
+                  }
+                </select>
+              </label>
+
+              <label class="sol__side_menu_group" for="sol_side_menu_shell">
+                <span class="sol__side_menu_label sol__text_caption">shell</span
+                >
+                <select id="sol_side_menu_shell" data-site-shell-control>
+                  {
+                    site_shell_options.map((shell_option) => (
+                      <option value={shell_option.value}>
+                        {shell_option.label}
+                      </option>
+                    ))
+                  }
+                </select>
+              </label>
+
+              <label class="sol__side_menu_group" for="sol_side_menu_scale">
+                <span class="sol__side_menu_label sol__text_caption">scale</span
+                >
+                <select id="sol_side_menu_scale" data-site-scale-control>
+                  {
+                    site_scale_options.map((scale_option) => (
+                      <option value={scale_option.value}>
+                        {scale_option.label}
+                      </option>
+                    ))
+                  }
+                </select>
+              </label>
+            </div>
+
+            <RitualSeparator />
+
+            <div class="sol__side_menu_settings_section">
+              <h3>Reading</h3>
+              <p class="sol__side_menu_note">
+                Preferences that follow the reader, not the page.
+              </p>
+
+              <label class="sol__side_menu_group" for="sol_side_menu_text">
+                <span class="sol__side_menu_label sol__text_caption">text</span>
+                <select id="sol_side_menu_text" data-user-text-control>
+                  {
+                    user_text_options.map((text_option) => (
+                      <option value={text_option.value}>
+                        {text_option.label}
+                      </option>
+                    ))
+                  }
+                </select>
+              </label>
+
+              <label class="sol__side_menu_group" for="sol_side_menu_measure">
+                <span class="sol__side_menu_label sol__text_caption"
+                  >measure</span
+                >
+                <select id="sol_side_menu_measure" data-user-measure-control>
+                  {
+                    user_measure_options.map((measure_option) => (
+                      <option value={measure_option.value}>
+                        {measure_option.label}
+                      </option>
+                    ))
+                  }
+                </select>
+              </label>
+            </div>
+
+            <RitualSeparator />
+
+            <div class="sol__side_menu_settings_section">
+              <h3>Local profile</h3>
+              <p class="sol__side_menu_note">
+                Browser-local only. No fake login, no pretend cloud account.
+              </p>
+
+              <dl class="sol__side_menu_status_list">
+                <div>
+                  <dt>profile</dt>
+                  <dd>local visitor</dd>
+                </div>
+                <div>
+                  <dt>storage</dt>
+                  <dd>browser cookies</dd>
+                </div>
+              </dl>
+
+              <button
+                type="button"
+                class="sol__side_menu_reset"
+                data-side-menu-reset
+              >
+                reset local preferences
+              </button>
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
-  </aside>
+    </ObsidianTablet>
+  </dialog>
 </mantle>
 
 <script type="module" src={with_base("js/modules/side_menu_runtime.js")}
 ></script>
+
+<script>
+  import "../../scripts/portal_navigation.js";
+</script>

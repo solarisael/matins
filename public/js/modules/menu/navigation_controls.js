@@ -6,9 +6,54 @@ import {
 } from "./preferences.js";
 import { set_menu_state, set_menu_view_state } from "./view_state.js";
 
+const is_menu_open_escape = (menu_node, event) =>
+  !(
+    !menu_node.isConnected ||
+    event.defaultPrevented ||
+    event.repeat ||
+    event.key !== "Escape" ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    menu_node.dataset.sideMenuOpen === "true"
+  );
+
+const is_escape_reserved = (event) => {
+  const target = event.target;
+  if (
+    target instanceof Element &&
+    target.closest(
+      "input, textarea, select, [contenteditable='true'], dialog[open]",
+    )
+  )
+    return true;
+  return Boolean(document.querySelector("dialog[open]"));
+};
+
+const cycle_panel_focus = (panel_node, event) => {
+  const focusable = [
+    ...panel_node.querySelectorAll(
+      "a[href], button:not([disabled]), select:not([disabled]), [tabindex='0']",
+    ),
+  ].filter(
+    (node) => !node.closest("[inert]") && node.getClientRects().length > 0,
+  );
+  const first = focusable[0];
+  const last = focusable.at(-1);
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last?.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first?.focus();
+  }
+};
+
 export const bind_navigation_controls = (menu_node) => {
   const close_node = menu_node.querySelector("[data-side-menu-close]");
   const trigger_node = menu_node.querySelector("[data-side-menu-trigger]");
+  const panel_node = menu_node.querySelector("[data-side-menu-panel-shell]");
+  const artifact_node = menu_node.querySelector("#sol_side_menu_panel_scroll");
 
   const commit_menu_state = (is_open, view_name) => {
     const safe_view = set_menu_state(menu_node, is_open, view_name);
@@ -88,7 +133,45 @@ export const bind_navigation_controls = (menu_node) => {
     close_node.addEventListener("click", close_menu);
   }
 
+  panel_node?.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    close_menu();
+  });
+  panel_node?.addEventListener("click", (event) => {
+    if (event.target === panel_node) close_menu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (!is_menu_open_escape(menu_node, event)) return;
+    if (is_escape_reserved(event)) return;
+    event.preventDefault();
+    trigger_node?.click();
+  });
+  artifact_node?.addEventListener("pointermove", (event) => {
+    if (
+      event.pointerType !== "mouse" ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    const rect = artifact_node.getBoundingClientRect();
+    menu_node.style.setProperty(
+      "--portal-pointer-x",
+      String((event.clientX - rect.left) / rect.width - 0.5),
+    );
+    menu_node.style.setProperty(
+      "--portal-pointer-y",
+      String((event.clientY - rect.top) / rect.height - 0.5),
+    );
+  });
+  artifact_node?.addEventListener("pointerleave", () => {
+    menu_node.style.setProperty("--portal-pointer-x", "0");
+    menu_node.style.setProperty("--portal-pointer-y", "0");
+  });
+
   menu_node.addEventListener("keydown", (event) => {
+    if (event.key === "Tab" && menu_node.dataset.sideMenuOpen === "true") {
+      cycle_panel_focus(panel_node, event);
+      return;
+    }
     if (event.key !== "Escape" || menu_node.dataset.sideMenuOpen !== "true") {
       return;
     }

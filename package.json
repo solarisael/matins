@@ -29,6 +29,8 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/virtual-core": "^3.16.0",
+    "@vgpu/wgsl": "^0.4.0",
+    "@vgpu/wgsl-std": "^0.4.0",
     "astro": "^5.16.11",
     "htmx.org": "^2.0.8",
     "idiomorph": "^0.7.4",
@@ -37,7 +39,8 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "rehype-raw": "^7.0.0",
     "tailwindcss": "^4.1.18",
-    "three": "^0.185.1"
+    "three": "^0.185.1",
+    "vgpu": "^0.4.0"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.10.6",

@@ -1,0 +1,28 @@
+---
+interface Props {
+  text: string;
+  manual?: boolean;
+}
+const { text, manual = false } = Astro.props;
+---
+
+<span class="sol__inscription"
+  ><sol-inscription manual={manual}>
+    <span class="sr-only">{text}</span><span
+      data-inscription-text
+      aria-hidden="true">{text}</span
+    >
+  </sol-inscription></span
+>
+
+<style>
+  [data-inscription-text] {
+    display: inline-block;
+    white-space: pre;
+  }
+</style>
+
+<script>
+  import { define_inscription_element } from "../../scripts/inscription_element.js";
+  define_inscription_element();
+</script>

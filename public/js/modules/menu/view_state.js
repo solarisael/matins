@@ -17,8 +17,31 @@ const set_menu_trigger_state = (trigger_node, is_open) => {
   );
 };
 
+const panel_scroll_styles = new WeakMap();
+
+const sync_dialog_lifecycle = (panel_node, is_open) => {
+  if (is_open && !panel_node.open) {
+    panel_node.inert = false;
+    panel_node.removeAttribute("aria-hidden");
+    panel_scroll_styles.set(
+      panel_node,
+      document.documentElement.style.overflow,
+    );
+    panel_node.showModal();
+    document.documentElement.style.overflow = "hidden";
+  } else if (!is_open && panel_node.open) {
+    panel_node.close();
+    document.documentElement.style.overflow =
+      panel_scroll_styles.get(panel_node) ?? "";
+    panel_scroll_styles.delete(panel_node);
+  }
+};
+
 const set_menu_panel_state = (panel_node, is_open) => {
   if (!(panel_node instanceof HTMLElement)) return;
+  if (panel_node instanceof HTMLDialogElement) {
+    sync_dialog_lifecycle(panel_node, is_open);
+  }
   panel_node.setAttribute("aria-hidden", is_open ? "false" : "true");
   panel_node.inert = !is_open;
 };
@@ -69,20 +92,47 @@ const set_menu_view_state = (menu_node, requested_view) => {
   return safe_view;
 };
 
-const set_menu_state = (menu_node, is_open, view_name) => {
-  if (!(menu_node instanceof HTMLElement)) {
-    return SITE_MENU_VIEW_DEFAULT;
+const should_animate_menu_close = (menu_node, panel_node, is_open) =>
+  !is_open &&
+  panel_node instanceof HTMLDialogElement &&
+  panel_node.open &&
+  menu_node.dataset.portalInkController === "ready" &&
+  menu_node.dataset.portalPhase !== "closed";
+
+const begin_menu_close = (menu_node, panel_node, trigger_node) => {
+  if (!menu_node.dataset.portalPhase.startsWith("closing")) {
+    menu_node.dataset.portalPhase =
+      menu_node.dataset.portalPhase === "artifact" ? "closing" : "closing-ink";
+    panel_node.addEventListener(
+      "sol:portal-close-finished",
+      () => {
+        if (menu_node.dataset.sideMenuOpen !== "true") {
+          set_menu_panel_state(panel_node, false);
+          trigger_node?.focus({ preventScroll: true });
+        }
+      },
+      { once: true },
+    );
   }
+};
 
+const set_menu_state = (menu_node, is_open, view_name) => {
+  if (!(menu_node instanceof HTMLElement)) return SITE_MENU_VIEW_DEFAULT;
   const safe_view = set_menu_view_state(menu_node, view_name);
-  menu_node.dataset.sideMenuOpen = is_open ? "true" : "false";
-
   const trigger_node = menu_node.querySelector("[data-side-menu-trigger]");
   const panel_node = menu_node.querySelector("[data-side-menu-panel-shell]");
-
+  if (is_open && menu_node.dataset.sideMenuOpen !== "true") {
+    menu_node.dataset.portalPhase =
+      menu_node.dataset.portalInkController === "ready" ? "ink" : "artifact";
+  }
+  menu_node.dataset.sideMenuOpen = is_open ? "true" : "false";
   set_menu_trigger_state(trigger_node, is_open);
+  if (should_animate_menu_close(menu_node, panel_node, is_open)) {
+    begin_menu_close(menu_node, panel_node, trigger_node);
+    return safe_view;
+  }
+  if (!is_open) menu_node.dataset.portalPhase = "closed";
   set_menu_panel_state(panel_node, is_open);
-
   return safe_view;
 };
 

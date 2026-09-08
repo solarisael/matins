@@ -1,0 +1,108 @@
+sol-obsidian-tablet {
+  --obsidian-rim-width: 12px;
+  --obsidian-halo: 4rem;
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: var(--obsidian-rim-width) minmax(0, 1fr) var(
+      --obsidian-rim-width
+    );
+  grid-template-columns: var(--obsidian-rim-width) minmax(0, 1fr) var(
+      --obsidian-rim-width
+    );
+  width: min(78rem, 100%);
+  max-height: 100%;
+  min-height: 0;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      145deg,
+      #51415566,
+      transparent 25%,
+      #00000099 65%,
+      #75605244
+    ),
+    linear-gradient(100deg, #09070e, #201823 50%, #07060a);
+  box-shadow:
+    inset 0 0 0 1px #b79b6166,
+    inset 0 0 0 2px #08060d,
+    0 0.5rem 1.5rem #0006;
+}
+sol-obsidian-tablet[data-obsidian-renderer="webgpu"] {
+  background: none;
+}
+
+[data-obsidian-surface] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms linear;
+}
+#sol_side_menu[data-side-menu-open="true"][data-portal-phase="artifact"]:has(
+    sol-obsidian-tablet[data-obsidian-renderer="webgpu"]
+  )
+  [data-obsidian-surface] {
+  opacity: 1;
+}
+
+.sol__obsidian_viewport {
+  grid-area: 2 / 2;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #080b10;
+  box-shadow:
+    0 0 0 1px #09060e,
+    0 0 0 2px #ab895b44;
+}
+.sol__obsidian_viewport > [data-portal-canvas] {
+  z-index: 0;
+}
+
+sol-obsidian-tablet[data-obsidian-preview="true"] .sol__obsidian_viewport {
+  background: transparent;
+  box-shadow: 0 0 0 1px #ab895b44;
+}
+sol-obsidian-tablet[data-obsidian-preview="true"]
+  .sol__obsidian_viewport
+  > :is([data-portal-canvas], #sol_side_menu_panel_scroll) {
+  visibility: hidden;
+}
+.sol__obsidian_preview {
+  position: absolute;
+  right: var(--obsidian-rim-width);
+  top: var(--obsidian-rim-width);
+  z-index: 2;
+  display: flex;
+  gap: 0.25rem;
+}
+.sol__obsidian_preview button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ab895b88;
+  border-radius: 0.2rem;
+  background: #080b10;
+  color: #e9d9b7;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.sol__obsidian_preview button:focus-visible {
+  outline: 2px solid #e9d9b7;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  sol-obsidian-tablet {
+    --obsidian-rim-width: 7px;
+    --obsidian-halo: 3rem;
+  }
+}
