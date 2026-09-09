@@ -30,38 +30,16 @@ const apply_route_link_state = (route_node, current_pathname) => {
       ? is_exact_match
       : is_section_path_active(current_pathname, target_pathname);
   set_route_current(route_node, is_exact_match, is_active);
-  return is_active ? target_pathname.length : -1;
 };
 
 const apply_route_links = (menu_node, current_pathname) => {
-  let active_route_node = null;
-  let active_route_length = -1;
   for (const route_node of menu_node.querySelectorAll(
     "[data-side-menu-route]",
   )) {
     if (!(route_node instanceof HTMLAnchorElement)) {
       continue;
     }
-    const route_length = apply_route_link_state(route_node, current_pathname);
-    if (route_length > active_route_length) {
-      active_route_node = route_node;
-      active_route_length = route_length;
-    }
-  }
-  return active_route_node;
-};
-
-const set_current_place_label = (current_place_node, active_route_node) => {
-  if (current_place_node instanceof HTMLElement) {
-    current_place_node.textContent =
-      active_route_node?.dataset.navLabel ?? "hearth";
-  }
-};
-
-const set_current_place_phase = (current_place_shell, active_route_node) => {
-  if (current_place_shell instanceof HTMLElement) {
-    current_place_shell.dataset.phase =
-      active_route_node?.dataset.phase ?? "home";
+    apply_route_link_state(route_node, current_pathname);
   }
 };
 
@@ -77,14 +55,6 @@ export const apply_side_menu_route_state = (pathname_override = null) => {
   if (last_applied_route_pathname === current_pathname) {
     return;
   }
-  const active_route_node = apply_route_links(menu_node, current_pathname);
-  const current_place_node = menu_node.querySelector(
-    "[data-side-menu-current]",
-  );
-  const current_place_shell = current_place_node?.closest(
-    ".sol__side_menu_current",
-  );
-  set_current_place_label(current_place_node, active_route_node);
-  set_current_place_phase(current_place_shell, active_route_node);
+  apply_route_links(menu_node, current_pathname);
   last_applied_route_pathname = current_pathname;
 };

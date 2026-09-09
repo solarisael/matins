@@ -10,6 +10,11 @@ import Inscription from "../ornament/inscription.astro";
 import ObsidianTablet from "../ornament/obsidian_tablet.astro";
 import { with_base } from "../../utils/routes.js";
 
+const menu_items = [
+  ...SITE_NAV_ITEMS,
+  ...WRITING_PHASE_NAV_ITEMS.filter((item) => item.phase === "codex"),
+];
+
 const site_theme_options = [
   {
     label: "solarisael",
@@ -114,7 +119,7 @@ const user_measure_options = [
   <dialog
     id="sol_side_menu_panel"
     role="dialog"
-    aria-labelledby="sol_side_menu_title"
+    aria-label="Site navigation"
     aria-modal="true"
     data-side-menu-panel-shell
   >
@@ -124,7 +129,6 @@ const user_measure_options = [
       <div slot="scene" data-portal-glyphs aria-hidden="true"></div>
       <div id="sol_side_menu_panel_scroll">
         <div id="sol_side_menu_panel_header">
-          <p id="sol_side_menu_title" class="sol__text_caption">Solarisael</p>
           <button
             type="button"
             data-side-menu-close
@@ -176,19 +180,13 @@ const user_measure_options = [
           >
             <h2 class="sr-only">Site navigation</h2>
             <nav id="sol_side_menu_routes" aria-label="Site navigation">
-              <div class="sol__side_menu_current" data-phase="home">
-                <span class="sol__text_kicker">current place</span>
-                <strong data-side-menu-current aria-live="polite">hearth</strong
-                >
-              </div>
-
               <ul
                 class="sol__side_menu_route_list"
                 data-depth-region
                 data-depth-padding="36"
               >
                 {
-                  SITE_NAV_ITEMS.map((nav_item) => (
+                  menu_items.map((nav_item) => (
                     <li>
                       <a
                         class="sol__side_menu_route"
@@ -199,7 +197,6 @@ const user_measure_options = [
                         hx-get={with_base(nav_item.href)}
                       >
                         <Inscription text={nav_item.label} manual />
-                        <small>{nav_item.description}</small>
                       </a>
                     </li>
                   ))
@@ -207,28 +204,6 @@ const user_measure_options = [
               </ul>
 
               <RitualSeparator />
-
-              <div class="sol__side_menu_phase_routes">
-                <p class="sol__text_kicker">writing gates</p>
-                <ul>
-                  {
-                    WRITING_PHASE_NAV_ITEMS.map((nav_item) => (
-                      <li>
-                        <a
-                          class="sol__side_menu_phase_route"
-                          data-side-menu-route
-                          data-nav-label={nav_item.label}
-                          data-phase={nav_item.phase}
-                          href={with_base(nav_item.href)}
-                          hx-get={with_base(nav_item.href)}
-                        >
-                          <Inscription text={nav_item.label} manual />
-                        </a>
-                      </li>
-                    ))
-                  }
-                </ul>
-              </div>
             </nav>
 
             <div class="sol__side_menu_touch_status">
@@ -252,7 +227,6 @@ const user_measure_options = [
             >
               <span>
                 <strong>site settings</strong>
-                <small>appearance, reading, and this local profile</small>
               </span>
               <span aria-hidden="true">›</span>
             </button>

@@ -135,7 +135,7 @@
   width: 100%;
   max-height: 100%;
   min-height: calc(min(39rem, 82dvh) - var(--obsidian-rim-width) * 2);
-  padding: clamp(1rem, 2vh, 1.5rem) clamp(1rem, 3vw, 2.75rem);
+  padding: clamp(2rem, 5vh, 3.5rem) clamp(1rem, 3vw, 2.75rem);
   border: 0;
   background: transparent;
   overflow-y: auto;
@@ -208,13 +208,6 @@
   opacity: 0.65;
   pointer-events: none;
 }
-#sol_side_menu_title {
-  margin: 0;
-  color: #ddc58d;
-  letter-spacing: 0.26em;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-}
 #sol_side_menu_routes > [data-shape="ritual_separator"] {
   width: min(32rem, 100%);
   margin: 1rem auto;
@@ -236,21 +229,6 @@
 .sol__side_menu_view[data-view-position="before"],
 .sol__side_menu_view[data-view-position="after"] {
   display: none;
-}
-.sol__side_menu_current {
-  display: flex;
-  justify-content: center;
-  gap: 0.7rem;
-  align-items: baseline;
-  margin: 0.5rem 0 1rem;
-  font-size: 0.7rem;
-}
-.sol__side_menu_current span {
-  color: #9d9b91;
-}
-.sol__side_menu_current strong {
-  color: #d5bf90;
-  font-weight: 400;
 }
 .sol__side_menu_route_list {
   list-style: none;
@@ -274,6 +252,7 @@
   color: #ffcf70;
   text-align: center;
   text-decoration: none;
+  opacity: 0.85;
   text-shadow:
     0 1px 2px #000,
     1px 0 2px #000,
@@ -283,28 +262,25 @@
     0 0 0.8rem #ffc24a85,
     0 0 1.4rem #eba11c3a;
   transition:
+    opacity 180ms,
     color 180ms,
     text-shadow 180ms;
 }
 .sol__side_menu_route sol-inscription {
   font-family: var(--font_ritual), "Solarisael Runic", "Solarisael Symbols";
-  font-size: clamp(1.75rem, 3vw, 3rem);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 400;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   line-height: 1.15;
   max-width: 100%;
 }
-.sol__side_menu_route small {
-  color: #e7d9bd;
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
 .sol__side_menu_route:hover,
 .sol__side_menu_route:focus-visible,
 .sol__side_menu_route[data-route-active="true"],
 a.sol__side_menu_route[data-portal-selected="true"] {
   color: #ffe29a;
+  opacity: 1;
   text-shadow:
     0 1px 2px #000,
     1px 0 2px #000,
@@ -313,56 +289,6 @@ a.sol__side_menu_route[data-portal-selected="true"] {
     0 0 0.25rem #ffedbddd,
     0 0 1rem #ffca59aa,
     0 0 1.8rem #ed9d2555;
-}
-.sol__side_menu_phase_routes {
-  width: min(36rem, 100%);
-  margin: 0 auto;
-  text-align: center;
-}
-.sol__side_menu_phase_routes > p {
-  color: #aaa18f;
-  margin-bottom: 0.5rem;
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-}
-.sol__side_menu_phase_routes ul {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem 0.75rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.sol__side_menu_phase_route {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  color: #f4c769;
-  text-decoration: none;
-  font-family: var(--font_ritual), "Solarisael Runic", "Solarisael Symbols";
-  font-size: 0.95rem;
-  padding: 0.3rem 0.4rem;
-  text-shadow:
-    0 1px 2px #000,
-    1px 0 2px #000,
-    -1px 0 2px #000,
-    0 -1px 2px #000,
-    0 0 0.35rem #ffd87585,
-    0 0 0.8rem #efaa3540;
-}
-.sol__side_menu_phase_route:hover,
-.sol__side_menu_phase_route:focus-visible,
-a.sol__side_menu_phase_route[data-portal-selected="true"],
-.sol__side_menu_phase_route[data-route-active="true"] {
-  color: #ffe29a;
-  text-decoration: underline;
-  text-underline-offset: 0.4rem;
-  text-shadow:
-    0 1px 2px #000,
-    0 0 0.4rem #ffe29aa8,
-    0 0 1rem #ffc04d66;
 }
 .sol__side_menu_state_link {
   width: auto;
@@ -378,17 +304,8 @@ a.sol__side_menu_phase_route[data-portal-selected="true"],
   background: transparent;
   text-shadow: 0 1px 2px #000;
 }
-.sol__side_menu_state_link > span:first-child {
-  display: grid;
-  gap: 0.2rem;
-  grid-template-columns: minmax(0, 1fr);
-}
 .sol__side_menu_state_link strong {
   font-weight: 400;
-}
-.sol__side_menu_state_link small {
-  color: #aaa69a;
-  font-size: 0.7rem;
 }
 .sol__side_menu_touch_status {
   display: flow-root;
@@ -406,7 +323,9 @@ a.sol__side_menu_phase_route[data-portal-selected="true"],
   visibility: hidden;
 }
 #sol_side_menu
-  button:not(#sol_side_menu_trigger):not(.sol__side_menu_state_link):not([data-side-menu-close]),
+  button:not(#sol_side_menu_trigger):not(.sol__side_menu_state_link):not(
+    [data-side-menu-close]
+  ),
 #sol_side_menu select {
   min-height: 44px;
   border: 1px solid #bca16b45;
@@ -538,9 +457,6 @@ a.sol__side_menu_phase_route[data-portal-selected="true"],
   }
   .sol__side_menu_route > sol-inscription {
     font-size: clamp(1.75rem, 7vw, 2.25rem);
-  }
-  .sol__side_menu_route small {
-    font-size: 0.72rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {

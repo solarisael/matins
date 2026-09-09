@@ -97,7 +97,7 @@ fn sample_current(point: vec2f) -> Current {
     flow.weights += vec2f(-transfer, transfer);
   }
   let optical_depth = vec2f(water.near_depth, water.far_depth)
-    + vec2f(height * water.wave_depth + depression.z);
+    + vec2f(height * height * water.wave_depth + depression.z);
   flow.weights *= exp(-water.absorption * max(optical_depth, vec2f(0.0)));
   return flow;
 }
@@ -347,17 +347,31 @@ fn basin_surface(
     return vec4f(basin_surface(local, edge_distance, edge_normal, field_uv, diffused), 1.0);
   }
 
-  let transmitted = fracture_at(refraction).rgb;
-  let reflection_uv = field_uv - edge_normal * bevel * 0.035 - ripple * 0.004;
-  let reflected = fracture_at(reflection_uv).rgb;
-  let red = fracture_at(refraction + edge_normal * 0.0015).r;
-  let blue = fracture_at(refraction - edge_normal * 0.0015).b;
-  let depth = vec3f(red, transmitted.g, blue);
-  let fresnel = 0.08 + 0.5 * pow(bevel, 3.0);
-  let highlight = pow(max(dot(edge_normal, normalize(vec2f(-0.6, -0.8))), 0.0), 5.0) * bevel;
-  let stone = vec3f(0.007, 0.005, 0.012) + vec3f(0.025, 0.018, 0.035) * (0.5 + ripple.x * 0.5);
-  let radiance = stone + depth * (0.7 - fresnel * 0.35)
-    + reflected * fresnel * 0.55 + diffused * 0.11
-    + vec3f(0.28, 0.23, 0.33) * highlight;
+  // Fixed rock coordinates: the light moves across the fractures, not the stone.
+  let rock_uv = surface_centered / 900.0 + glass.field_offset;
+  let fracture = textureSampleLevel(fracture_field, field_sampler, rock_uv, 0.0);
+  let grain_field = textureSampleLevel(fog_field, field_sampler, rock_uv * 3.0, 0.0).rg;
+  let angle = fracture.a * 3.14159265;
+  let facet_direction = vec2f(cos(angle), sin(angle));
+  let facet_normal = normalize(vec3f(
+    edge_normal * 0.75 + facet_direction * mix(0.3, 0.7, grain_field.r),
+    mix(0.35, 0.8, grain_field.g)
+  ));
+  let light_direction = normalize(vec3f(-0.6, -0.8, 0.9));
+  let facing = max(dot(facet_normal, light_direction), 0.0);
+  let fracture_strength = max(max(fracture.r, fracture.g), fracture.b);
+  let crack = smoothstep(0.035, 0.8, fracture_strength);
+  let chipped_lip = 4.0 * crack * (1.0 - crack);
+  let grain_cell = floor(surface_local * 1.3);
+  let grain = fract(sin(dot(grain_cell, vec2f(127.1, 311.7))) * 43758.5453);
+  let polish = smoothstep(0.55, 0.78, grain_field.r);
+  let rough_light = facing * mix(0.3, 1.0, grain);
+  let shard_glint = pow(facing, 18.0) * polish * pow(bevel, 2.0);
+  let stone = mix(vec3f(0.014, 0.016, 0.021), vec3f(0.065, 0.072, 0.085), rough_light);
+  let reflected = fracture_at(field_uv - facet_normal.xy * 0.025).rgb;
+  let transmitted = fracture_at(refraction + facet_direction * 0.004).rgb;
+  let radiance = (stone + transmitted * 0.075 + reflected * mix(0.07, 0.22, polish)
+    + diffused * 0.035) * (1.0 - crack * 0.88)
+    + vec3f(0.18, 0.19, 0.22) * (shard_glint + chipped_lip * facing * 0.28);
   return vec4f(film(radiance), 1.0);
 }

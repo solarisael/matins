@@ -103,6 +103,7 @@ export const create_word_enchantment = (link) => {
   const text = label.textContent;
   const overlay = document.createElement("span");
   overlay.className = "sol__enchantment_letters";
+  overlay.dataset.depthExempt = "";
   overlay.setAttribute("aria-hidden", "true");
   label.parentElement.append(overlay);
   const bleed = create_bleed_trail(overlay);

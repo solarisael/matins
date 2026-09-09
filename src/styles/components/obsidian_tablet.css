@@ -63,16 +63,12 @@ sol-obsidian-tablet {
   background:
     linear-gradient(
       145deg,
-      #51415566,
+      #0b0e1433,
       transparent 25%,
       #00000099 65%,
-      #75605244
+      #10151c22
     ),
-    linear-gradient(100deg, #09070e, #201823 50%, #07060a);
-  box-shadow:
-    inset 0 0 0 1px #b79b6166,
-    inset 0 0 0 2px #08060d,
-    0 0.5rem 1.5rem #0006;
+    linear-gradient(100deg, #020407, #070a0f 50%, #010204);
 }
 sol-obsidian-tablet[data-obsidian-renderer="webgpu"] {
   background: none;
@@ -106,7 +102,6 @@ sol-obsidian-tablet[data-obsidian-renderer="webgpu"] {
   overflow: hidden;
   isolation: isolate;
   background: transparent;
-  box-shadow: 0 0 0 1px #ab895b44;
 }
 
 @media (max-width: 700px) {

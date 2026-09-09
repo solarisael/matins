@@ -63,15 +63,17 @@ const create_field = (menu) => {
   const collect = () => {
     for (const glyph of glyphs) restore_glyph(glyph);
     targets = [...tablet.querySelectorAll("[data-depth-region]")];
-    glyphs = [...tablet.querySelectorAll("[data-depth-glyph]")].map((node) => ({
-      node,
-      changed: false,
-      water_depth:
-        node.parentElement.dataset.glyphDepth === "far"
-          ? WATER_OPTICS.far_depth
-          : WATER_OPTICS.near_depth,
-      sample: { depth: 0, x: 0, y: 0 },
-    }));
+    glyphs = [...tablet.querySelectorAll("[data-depth-glyph]")]
+      .filter((node) => !node.closest("[data-depth-exempt]"))
+      .map((node) => ({
+        node,
+        changed: false,
+        water_depth:
+          node.parentElement.dataset.glyphDepth === "far"
+            ? WATER_OPTICS.far_depth
+            : WATER_OPTICS.near_depth,
+        sample: { depth: 0, x: 0, y: 0 },
+      }));
     dirty = false;
   };
   const measure = () => {
@@ -118,7 +120,7 @@ const create_field = (menu) => {
       region[2] = rx;
       region[3] = ry;
       const params = uniforms.depth_params[count];
-      params[0] = number(element, "depth", 60, 0, 96);
+      params[0] = number(element, "depth", 60, 0, 256);
       params[1] = number(element, "depthInner", 0.35, 0, 0.9);
       count++;
     }
@@ -201,6 +203,7 @@ const create_field = (menu) => {
       "data-depth",
       "data-depth-padding",
       "data-depth-inner",
+      "data-depth-exempt",
       "data-side-menu-open",
       "data-portal-phase",
       "data-side-menu-view",

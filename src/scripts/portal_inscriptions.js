@@ -7,13 +7,10 @@ export const create_portal_inscriptions = (
 ) => {
   const inscriptions = [];
   for (const label of menu.querySelectorAll(
-    ".sol__side_menu_route [data-inscription-text], .sol__side_menu_phase_route [data-inscription-text]",
+    ".sol__side_menu_route [data-inscription-text]",
   )) {
     const link = label.closest("a");
-    link.setAttribute(
-      "aria-label",
-      `${label.textContent}. ${link.querySelector("small")?.textContent ?? ""}`,
-    );
+    link.setAttribute("aria-label", label.textContent);
     inscriptions.push(
       create_inscription(label, {
         trigger: link,

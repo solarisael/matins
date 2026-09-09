@@ -44,6 +44,9 @@
   opacity: var(--water-transmission, 1);
   transform-origin: center;
 }
+[data-depth-exempt] .sol__depth_glyph {
+  opacity: 1;
+}
 [data-glyph-family="runic"] {
   font-family: "Solarisael Runic", sans-serif;
 }
@@ -104,6 +107,12 @@
     0 0 0.25rem #ffdc86c0,
     0 0 0.65rem #ffb63580;
   animation: enchanted-bleed 5s linear infinite paused;
+}
+.sol__side_menu_route .sol__enchantment_letters {
+  filter: brightness(2);
+}
+.sol__side_menu_route .sol__letter_bleed {
+  font-size: max(0.32em, 0.8rem);
 }
 .sol__enchantment_rim {
   inset: var(--close-rim-inset, 0px);
