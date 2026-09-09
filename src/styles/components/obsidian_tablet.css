@@ -105,45 +105,8 @@ sol-obsidian-tablet[data-obsidian-renderer="webgpu"] {
   min-height: 0;
   overflow: hidden;
   isolation: isolate;
-  background: #080b10;
-  box-shadow:
-    0 0 0 1px #09060e,
-    0 0 0 2px #ab895b44;
-}
-.sol__obsidian_viewport > [data-portal-canvas] {
-  z-index: 0;
-}
-
-sol-obsidian-tablet[data-obsidian-preview="true"] .sol__obsidian_viewport {
   background: transparent;
   box-shadow: 0 0 0 1px #ab895b44;
-}
-sol-obsidian-tablet[data-obsidian-preview="true"]
-  .sol__obsidian_viewport
-  > :is([data-portal-canvas], #sol_side_menu_panel_scroll) {
-  visibility: hidden;
-}
-.sol__obsidian_preview {
-  position: absolute;
-  right: var(--obsidian-rim-width);
-  top: var(--obsidian-rim-width);
-  z-index: 2;
-  display: flex;
-  gap: 0.25rem;
-}
-.sol__obsidian_preview button {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #ab895b88;
-  border-radius: 0.2rem;
-  background: #080b10;
-  color: #e9d9b7;
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-.sol__obsidian_preview button:focus-visible {
-  outline: 2px solid #e9d9b7;
-  outline-offset: 2px;
 }
 
 @media (max-width: 700px) {

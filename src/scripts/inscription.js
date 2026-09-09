@@ -17,25 +17,25 @@ const cache_hover = (cache) => {
         cache.seed ^= cache.seed >>> 17;
         cache.seed ^= cache.seed << 5;
         let total = 0;
-        for (let glyph = 0; glyph < GLYPHS.length; glyph++) {
-          if (GLYPHS[glyph] !== previous?.[index])
+        for (let glyph = 0; glyph < cache.glyphs.length; glyph++) {
+          if (cache.glyphs[glyph] !== previous?.[index])
             total += cache.weights[glyph];
         }
         let pick = ((cache.seed >>> 0) / 4294967296) * total;
-        let selected = GLYPHS.length - 1;
-        for (let glyph = 0; glyph < GLYPHS.length; glyph++) {
-          if (GLYPHS[glyph] === previous?.[index]) continue;
+        let selected = cache.glyphs.length - 1;
+        for (let glyph = 0; glyph < cache.glyphs.length; glyph++) {
+          if (cache.glyphs[glyph] === previous?.[index]) continue;
           pick -= cache.weights[glyph];
           if (pick < 0) {
             selected = glyph;
             break;
           }
         }
-        for (let glyph = 0; glyph < GLYPHS.length; glyph++) {
+        for (let glyph = 0; glyph < cache.glyphs.length; glyph++) {
           cache.weights[glyph] =
             glyph === selected ? 0.2 : Math.min(1, cache.weights[glyph] + 0.15);
         }
-        return GLYPHS[selected];
+        return cache.glyphs[selected];
       }),
     );
   }
@@ -44,16 +44,23 @@ const cache_hover = (cache) => {
 
 export const create_inscription = (
   label,
-  { trigger = label, is_enabled = () => true, prepare_label = () => {} } = {},
+  {
+    trigger = label,
+    is_enabled = () => true,
+    prepare_label = () => {},
+    glyphs = GLYPHS,
+  } = {},
 ) => {
   let disposed = false;
   let restore_layout;
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const original = label.textContent;
+  const alphabet = [...glyphs];
   const cache = {
     letters: [...original],
+    glyphs: alphabet,
     seed: crypto.getRandomValues(new Uint32Array(1))[0] || 1,
-    weights: Array(GLYPHS.length).fill(1),
+    weights: Array(alphabet.length).fill(1),
     frames: [],
     animation: null,
   };

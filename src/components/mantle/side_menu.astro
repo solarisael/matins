@@ -1,5 +1,6 @@
 ---
 import "../../styles/components/side_menu.css";
+import "../../styles/components/portal_enchantment.css";
 import {
   SITE_NAV_ITEMS,
   WRITING_PHASE_NAV_ITEMS,
@@ -120,21 +121,51 @@ const user_measure_options = [
     <canvas data-portal-ink aria-hidden="true"></canvas>
 
     <ObsidianTablet>
-      <canvas slot="scene" data-portal-canvas aria-hidden="true"></canvas>
+      <div slot="scene" data-portal-glyphs aria-hidden="true"></div>
       <div id="sol_side_menu_panel_scroll">
-        <div data-portal-aperture aria-hidden="true"></div>
         <div id="sol_side_menu_panel_header">
           <p id="sol_side_menu_title" class="sol__text_caption">Solarisael</p>
           <button
             type="button"
             data-side-menu-close
+            data-depth-region
+            data-depth="12"
+            data-depth-padding="18"
+            data-depth-inner="0.25"
             aria-label="Close Solarisael menu"
           >
-            close
+            <svg
+              class="sol__close_rim"
+              viewBox="0 0 44 44"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle
+                cx="22"
+                cy="22"
+                r="21.5"
+                fill="#0d111870"
+                vector-effect="non-scaling-stroke"
+                stroke="currentColor"
+                stroke-width="0.5"></circle>
+            </svg>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="m6 6 12 12M18 6 6 18"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"></path>
+            </svg>
           </button>
         </div>
-
-        <RitualSeparator />
 
         <div id="sol_side_menu_viewport">
           <section
@@ -151,7 +182,11 @@ const user_measure_options = [
                 >
               </div>
 
-              <ul class="sol__side_menu_route_list">
+              <ul
+                class="sol__side_menu_route_list"
+                data-depth-region
+                data-depth-padding="36"
+              >
                 {
                   SITE_NAV_ITEMS.map((nav_item) => (
                     <li>
@@ -187,7 +222,7 @@ const user_measure_options = [
                           href={with_base(nav_item.href)}
                           hx-get={with_base(nav_item.href)}
                         >
-                          {nav_item.label}
+                          <Inscription text={nav_item.label} manual />
                         </a>
                       </li>
                     ))
@@ -196,7 +231,17 @@ const user_measure_options = [
               </div>
             </nav>
 
-            <RitualSeparator />
+            <div class="sol__side_menu_touch_status">
+              <p
+                id="sol_portal_touch_hint"
+                data-portal-touch-hint
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                tap again to enter
+              </p>
+            </div>
 
             <button
               class="sol__side_menu_state_link"

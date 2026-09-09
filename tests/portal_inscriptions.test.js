@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { create_portal_inscriptions } from "../src/scripts/portal_inscriptions.js";
+import { create_inscription } from "../src/scripts/inscription.js";
 import { clearCache } from "@chenglou/pretext";
 import { define_inscription_element } from "../src/scripts/inscription_element.js";
 const original_offscreen_canvas = globalThis.OffscreenCanvas;
@@ -218,4 +219,22 @@ test("standalone wrappers keep their original text under reduced motion", () => 
   );
   expect(button.querySelector(".sr-only").textContent).toBe("Quiet gate");
   expect(frames.size).toBe(0);
+});
+
+test("custom enchanted alphabets preserve supplementary Unicode glyphs", () => {
+  const label = labels()[0];
+  const original = label.textContent;
+  const glyphs = ["ᚠ", "🜁", "🜂"];
+  const inscription = create_inscription(label, { glyphs });
+  inscription.reveal();
+  advance(0);
+  const symbols = [...label.textContent].filter(
+    (letter) => !/\s/u.test(letter),
+  );
+  expect(symbols.length).toBe(
+    [...original].filter((letter) => !/\s/u.test(letter)).length,
+  );
+  expect(symbols.every((letter) => glyphs.includes(letter))).toBe(true);
+  inscription.dispose();
+  expect(label.textContent).toBe(original);
 });

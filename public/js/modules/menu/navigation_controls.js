@@ -53,7 +53,6 @@ export const bind_navigation_controls = (menu_node) => {
   const close_node = menu_node.querySelector("[data-side-menu-close]");
   const trigger_node = menu_node.querySelector("[data-side-menu-trigger]");
   const panel_node = menu_node.querySelector("[data-side-menu-panel-shell]");
-  const artifact_node = menu_node.querySelector("#sol_side_menu_panel_scroll");
 
   const commit_menu_state = (is_open, view_name) => {
     const safe_view = set_menu_state(menu_node, is_open, view_name);
@@ -145,26 +144,6 @@ export const bind_navigation_controls = (menu_node) => {
     if (is_escape_reserved(event)) return;
     event.preventDefault();
     trigger_node?.click();
-  });
-  artifact_node?.addEventListener("pointermove", (event) => {
-    if (
-      event.pointerType !== "mouse" ||
-      matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
-    const rect = artifact_node.getBoundingClientRect();
-    menu_node.style.setProperty(
-      "--portal-pointer-x",
-      String((event.clientX - rect.left) / rect.width - 0.5),
-    );
-    menu_node.style.setProperty(
-      "--portal-pointer-y",
-      String((event.clientY - rect.top) / rect.height - 0.5),
-    );
-  });
-  artifact_node?.addEventListener("pointerleave", () => {
-    menu_node.style.setProperty("--portal-pointer-x", "0");
-    menu_node.style.setProperty("--portal-pointer-y", "0");
   });
 
   menu_node.addEventListener("keydown", (event) => {

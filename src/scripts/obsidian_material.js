@@ -1,3 +1,5 @@
+import { WATER_OPTICS } from "./water_optics.js";
+
 export const create_obsidian_material = async (api, gpu, sources, format) => {
   const field = api.target(gpu, {
     size: [1536, 1536],
@@ -64,6 +66,7 @@ export const create_obsidian_material = async (api, gpu, sources, format) => {
       emission_field: emission.texture,
       fog_field: fog.color,
       field_sampler: sampler,
+      water: WATER_OPTICS,
       glass: {
         resolution: [1, 1],
         tablet_size: [1, 1],
@@ -72,6 +75,9 @@ export const create_obsidian_material = async (api, gpu, sources, format) => {
         halo: 64,
         rim: 12,
         time: 0,
+        depth_regions: Array.from({ length: 16 }, () => [0, 0, 0, 0]),
+        depth_params: Array.from({ length: 16 }, () => [0, 0, 0, 0]),
+        depth_count: 0,
       },
     },
   });

@@ -3,26 +3,7 @@ import "../../styles/components/obsidian_tablet.css";
 ---
 
 <canvas data-obsidian-surface aria-hidden="true"></canvas>
-<sol-obsidian-tablet
-  data-obsidian-renderer="static"
-  data-obsidian-preview={import.meta.env.DEV ? "true" : undefined}
->
-  {
-    import.meta.env.DEV && (
-      <div class="sol__obsidian_preview" data-obsidian-preview-toolbar>
-        <button type="button" data-obsidian-preview-toggle aria-pressed="true">
-          Empty basin
-        </button>
-        <button
-          type="button"
-          data-obsidian-preview-close
-          aria-label="Close menu"
-        >
-          Close
-        </button>
-      </div>
-    )
-  }
+<sol-obsidian-tablet data-obsidian-renderer="static">
   <div class="sol__obsidian_viewport">
     <slot name="scene" />
     <slot />
@@ -31,24 +12,20 @@ import "../../styles/components/obsidian_tablet.css";
 
 <script>
   import { create_obsidian_runtime } from "../../scripts/obsidian_runtime.js";
-  import { create_obsidian_preview } from "../../scripts/obsidian_preview.js";
 
   if (!customElements.get("sol-obsidian-tablet")) {
     customElements.define(
       "sol-obsidian-tablet",
       class extends HTMLElement {
         connectedCallback() {
-          if (this.runtime || this.preview) return;
+          if (this.runtime) return;
           const menu = this.closest("#sol_side_menu");
           const canvas = menu?.querySelector("[data-obsidian-surface]");
           if (!menu) return;
-          this.preview = create_obsidian_preview({ owner: this, menu });
           if (!canvas) return;
           this.runtime = create_obsidian_runtime({ owner: this, menu, canvas });
         }
         disconnectedCallback() {
-          this.preview?.dispose();
-          this.preview = null;
           this.runtime?.dispose();
           this.runtime = null;
         }

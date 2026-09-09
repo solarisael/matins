@@ -6,9 +6,6 @@ struct Glass {
   halo: f32,
   rim: f32,
   time: f32,
-  depth_regions: array<vec4f, 16>,
-  depth_params: array<vec4f, 16>,
-  depth_count: f32,
 }
 @group(0) @binding(0) var fracture_field: texture_2d<f32>;
 @group(0) @binding(1) var diffuse_field: texture_2d<f32>;
@@ -17,49 +14,14 @@ struct Glass {
 @group(0) @binding(4) var emission_field: texture_2d<f32>;
 @group(0) @binding(5) var fog_field: texture_2d<f32>;
 
-struct Water {
-  absorption: f32,
-  near_depth: f32,
-  far_depth: f32,
-  wave_depth: f32,
-}
-@group(0) @binding(6) var<uniform> water: Water;
-
 struct Current {
   near_offset: vec2f,
   far_offset: vec2f,
   weights: vec2f,
   gradient: vec2f,
   height: f32,
-  depression: vec3f,
 }
 var<private> current: Current;
-
-// Positive depth points into the basin; xy is its tablet-local spatial gradient.
-fn sample_depression(local: vec2f) -> vec3f {
-  var depression = vec3f(0.0);
-  for (var i = 0u; i < min(u32(glass.depth_count), 16u); i++) {
-    let region = glass.depth_regions[i];
-    let params = glass.depth_params[i];
-    let delta = local - region.xy;
-    let q = length(delta / region.zw);
-    if (q >= 1.0 || params.x <= 0.0) {
-      continue;
-    }
-    let shoulder = 1.0 - params.y;
-    let t = clamp((1.0 - q) / shoulder, 0.0, 1.0);
-    let depth = params.x * t * t * (3.0 - 2.0 * t);
-    if (depth > depression.z) {
-      var gradient = vec2f(0.0);
-      if (q > params.y) {
-        gradient = -params.x * 6.0 * t * (1.0 - t) / shoulder
-          * (delta / (region.zw * region.zw)) / max(q, 0.0001);
-      }
-      depression = vec3f(gradient, depth);
-    }
-  }
-  return depression;
-}
 
 fn sample_current(point: vec2f) -> Current {
   let world = point / 1920.0 + glass.field_offset;
@@ -81,25 +43,11 @@ fn sample_current(point: vec2f) -> Current {
     fog_field, field_sampler, world + near_offset * 0.3 + vec2f(glass.time * 0.001), 0.0
   ).rg;
   let overlap = smoothstep(-0.12, 0.12, heights.r - heights.g + (height - 0.5) * 0.16);
-  let depression = sample_depression(point + glass.tablet_size * 0.5);
-  var flow = Current(
+  return Current(
     near_offset, far_offset,
     vec2f(mix(0.55, 1.0, overlap), mix(0.4, 0.1, overlap)),
-    gradient, height, depression
+    gradient, height
   );
-  if (depression.z > 0.0) {
-    flow.height = max(0.0, flow.height - depression.z / 96.0);
-    flow.gradient -= depression.xy * 0.5;
-    // One optical deformation owns fracture, diffuse, and emission sampling.
-    flow.near_offset += (-depression.xy * 12.0 + vec2f(0.0, depression.z * 0.3)) / 640.0;
-    flow.far_offset += (-depression.xy * 24.0 + vec2f(0.0, depression.z * 0.65)) / 640.0;
-    let transfer = flow.weights.x * 0.28 * depression.z / (depression.z + 48.0);
-    flow.weights += vec2f(-transfer, transfer);
-  }
-  let optical_depth = vec2f(water.near_depth, water.far_depth)
-    + vec2f(height * water.wave_depth + depression.z);
-  flow.weights *= exp(-water.absorption * max(optical_depth, vec2f(0.0)));
-  return flow;
 }
 
 fn film(color: vec3f) -> vec3f {
@@ -196,6 +144,14 @@ fn water_spill(mist: vec4f, field_uv: vec2f, normal: vec2f, distance: f32) -> ve
   return vec4f(color + mist.rgb * (1.0 - alpha), alpha + mist.a * (1.0 - alpha));
 }
 
+fn reading_well(local: vec2f, edge_distance: f32) -> f32 {
+  let half_size = max(glass.tablet_size * 0.5, vec2f(1.0));
+  let extent = vec2f(min(glass.tablet_size.x * 0.4, 310.0), half_size.y * 0.95);
+  let radius = length((local - half_size) / max(extent, vec2f(1.0)));
+  let well = 1.0 - smoothstep(0.9, 1.55, radius);
+  let lip = smoothstep(glass.rim, glass.rim + 18.0, edge_distance);
+  return mix(1.0, 0.012, well * lip);
+}
 
 fn basin_surface(
   local: vec2f, edge_distance: f32, edge_normal: vec2f,
@@ -246,7 +202,7 @@ fn basin_surface(
   let shadow = density * (1.0 - illumination) * 0.48;
   let tint = mix(vec3f(0.95, 0.92, 0.8), film(diffused * 4.0), 0.25);
   let surface = glass_color * (1.0 - shadow) * (1.0 - scattered) + tint * scattered;
-  return surface;
+  return surface * reading_well(local, edge_distance);
 }
 
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {

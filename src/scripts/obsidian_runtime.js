@@ -1,3 +1,5 @@
+import { acquire_element_depth } from "./element_depth.js";
+
 const load_obsidian_gpu = async (canvas, options) => {
   const { create_obsidian_gpu } = await import("./obsidian_gpu.js");
   return create_obsidian_gpu(canvas, options);
@@ -10,6 +12,7 @@ export const create_obsidian_runtime = ({
   load_gpu = load_obsidian_gpu,
 }) => {
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  const depth = acquire_element_depth(menu);
   const values = {
     resolution: [0, 0],
     tablet_size: [0, 0],
@@ -18,6 +21,7 @@ export const create_obsidian_runtime = ({
     halo: 0,
     rim: 0,
     time: 0,
+    ...depth.field.uniforms,
   };
   let backend = null,
     pending = false,
@@ -99,6 +103,7 @@ export const create_obsidian_runtime = ({
   };
 
   const render = () => {
+    values.depth_count = depth.field.uniforms.depth_count;
     try {
       backend.render(values);
     } catch {
@@ -189,6 +194,7 @@ export const create_obsidian_runtime = ({
   resize.observe(owner);
   resize.observe(canvas);
   motion.addEventListener("change", motion_change);
+  menu.addEventListener("sol:depth-change", invalidate);
   document.addEventListener("visibilitychange", sync);
   sync();
 
@@ -201,8 +207,10 @@ export const create_obsidian_runtime = ({
       resize.disconnect();
       motion.removeEventListener("change", motion_change);
       document.removeEventListener("visibilitychange", sync);
+      menu.removeEventListener("sol:depth-change", invalidate);
       owner.dataset.obsidianRenderer = "static";
       release();
+      depth.release();
     },
   };
 };

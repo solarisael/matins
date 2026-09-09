@@ -1,10 +1,13 @@
 import { create_inscription } from "./inscription.js";
 import { size_inscription } from "./inscription_element.js";
 
-export const create_portal_inscriptions = (menu) => {
+export const create_portal_inscriptions = (
+  menu,
+  { glyphs, is_enabled = () => true } = {},
+) => {
   const inscriptions = [];
   for (const label of menu.querySelectorAll(
-    ".sol__side_menu_route [data-inscription-text]",
+    ".sol__side_menu_route [data-inscription-text], .sol__side_menu_phase_route [data-inscription-text]",
   )) {
     const link = label.closest("a");
     link.setAttribute(
@@ -14,8 +17,9 @@ export const create_portal_inscriptions = (menu) => {
     inscriptions.push(
       create_inscription(label, {
         trigger: link,
-        is_enabled: () => menu.dataset.sideMenuOpen === "true",
+        is_enabled: () => menu.dataset.sideMenuOpen === "true" && is_enabled(),
         prepare_label: size_inscription,
+        glyphs,
       }),
     );
   }
