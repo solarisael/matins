@@ -1,4 +1,6 @@
 import {
+  SITE_DISPLAY_COOKIE_NAME,
+  SITE_DISPLAY_DEFAULT,
   SITE_FX_COOKIE_NAME,
   SITE_FX_DEFAULT,
   SITE_SCALE_COOKIE_NAME,
@@ -14,6 +16,9 @@ import {
   apply_site_style_state,
   apply_user_settings_state,
   get_safe_option,
+  resolve_saved_style,
+  resolve_saved_user_settings,
+  site_display_options,
   site_fx_options,
   site_scale_options,
   site_shell_options,
@@ -42,11 +47,13 @@ export const bind_settings_controls = (menu_node) => {
   const scale_select_node = menu_node.querySelector(
     "[data-site-scale-control]",
   );
+  const display_select_node = menu_node.querySelector(
+    "[data-site-display-control]",
+  );
   const text_select_node = menu_node.querySelector("[data-user-text-control]");
   const measure_select_node = menu_node.querySelector(
     "[data-user-measure-control]",
   );
-  const reset_node = menu_node.querySelector("[data-side-menu-reset]");
 
   const commit_site_state = () => {
     const selected_theme_name = get_safe_option(
@@ -77,6 +84,13 @@ export const bind_settings_controls = (menu_node) => {
       site_scale_options,
       SITE_SCALE_DEFAULT,
     );
+    const selected_display_name = get_safe_option(
+      display_select_node instanceof HTMLSelectElement
+        ? display_select_node.value
+        : SITE_DISPLAY_DEFAULT,
+      site_display_options,
+      SITE_DISPLAY_DEFAULT,
+    );
 
     apply_site_style_state(
       document.documentElement,
@@ -84,11 +98,13 @@ export const bind_settings_controls = (menu_node) => {
       selected_shell_name,
       selected_fx_name,
       selected_scale_name,
+      selected_display_name,
     );
     write_cookie_value(SITE_THEME_COOKIE_NAME, selected_theme_name);
     write_cookie_value(SITE_SHELL_COOKIE_NAME, selected_shell_name);
     write_cookie_value(SITE_FX_COOKIE_NAME, selected_fx_name);
     write_cookie_value(SITE_SCALE_COOKIE_NAME, selected_scale_name);
+    write_cookie_value(SITE_DISPLAY_COOKIE_NAME, selected_display_name);
   };
 
   const commit_user_state = () => {
@@ -120,43 +136,59 @@ export const bind_settings_controls = (menu_node) => {
   bind_select_change(shell_select_node, commit_site_state);
   bind_select_change(fx_select_node, commit_site_state);
   bind_select_change(scale_select_node, commit_site_state);
+  bind_select_change(display_select_node, commit_site_state);
   bind_select_change(text_select_node, commit_user_state);
   bind_select_change(measure_select_node, commit_user_state);
 
-  if (reset_node instanceof HTMLButtonElement) {
+  for (const reset_node of menu_node.querySelectorAll(
+    "[data-side-menu-reset]",
+  )) {
+    if (!(reset_node instanceof HTMLButtonElement)) continue;
     reset_node.addEventListener("click", () => {
-      for (const cookie_name of [
-        SITE_THEME_COOKIE_NAME,
-        SITE_SHELL_COOKIE_NAME,
-        SITE_FX_COOKIE_NAME,
-        SITE_SCALE_COOKIE_NAME,
-        USER_TEXT_COOKIE_NAME,
-        USER_MEASURE_COOKIE_NAME,
-      ]) {
-        delete_cookie_value(cookie_name);
-      }
+      const cookie_names =
+        reset_node.dataset.sideMenuReset === "site"
+          ? [
+              SITE_THEME_COOKIE_NAME,
+              SITE_SHELL_COOKIE_NAME,
+              SITE_FX_COOKIE_NAME,
+              SITE_SCALE_COOKIE_NAME,
+              SITE_DISPLAY_COOKIE_NAME,
+            ]
+          : [USER_TEXT_COOKIE_NAME, USER_MEASURE_COOKIE_NAME];
+      for (const cookie_name of cookie_names) delete_cookie_value(cookie_name);
 
+      const {
+        saved_theme_class,
+        saved_shell_class,
+        saved_fx_class,
+        saved_scale_class,
+        saved_display_class,
+      } = resolve_saved_style();
+      const { saved_text_class, saved_measure_class } =
+        resolve_saved_user_settings();
       apply_site_style_state(
         document.documentElement,
-        SITE_THEME_DEFAULT,
-        SITE_SHELL_DEFAULT,
-        SITE_FX_DEFAULT,
-        SITE_SCALE_DEFAULT,
+        saved_theme_class,
+        saved_shell_class,
+        saved_fx_class,
+        saved_scale_class,
+        saved_display_class,
       );
       apply_user_settings_state(
         document.documentElement,
-        USER_TEXT_DEFAULT,
-        USER_MEASURE_DEFAULT,
+        saved_text_class,
+        saved_measure_class,
       );
       sync_side_menu_controls(
-        SITE_THEME_DEFAULT,
-        SITE_SHELL_DEFAULT,
-        SITE_FX_DEFAULT,
-        SITE_SCALE_DEFAULT,
-        USER_TEXT_DEFAULT,
-        USER_MEASURE_DEFAULT,
+        saved_theme_class,
+        saved_shell_class,
+        saved_fx_class,
+        saved_scale_class,
+        saved_text_class,
+        saved_measure_class,
         true,
-        "settings",
+        menu_node.dataset.sideMenuView,
+        saved_display_class,
       );
     });
   }

@@ -75,6 +75,7 @@ export const create_ink_shadow = (menu, panel, canvas, artifact) => {
     extent: [0.5, 0.4],
     time: 0,
     reveal: 0,
+    sdr: 1,
   };
   const renderer_ready = () => {
     reveal_started =
@@ -120,6 +121,7 @@ export const create_ink_shadow = (menu, panel, canvas, artifact) => {
     values.extent[0] = (viewport.width / viewport.height) * 0.375;
     values.extent[1] = 0.375;
     values.time = motion.matches ? 0 : elapsed / 1000;
+    values.sdr = document.documentElement.dataset.siteDisplay === "hdr" ? 0 : 1;
     return true;
   };
   const advance_reveal = (now) => {
@@ -162,6 +164,11 @@ export const create_ink_shadow = (menu, panel, canvas, artifact) => {
   };
   const resize = new ResizeObserver(request);
   resize.observe(panel);
+  const display = new MutationObserver(request);
+  display.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-site-display"],
+  });
   motion.addEventListener("change", request);
   document.addEventListener("visibilitychange", visibility);
   return {
@@ -207,6 +214,7 @@ export const create_ink_shadow = (menu, panel, canvas, artifact) => {
       delete menu.dataset.portalInkController;
       release();
       resize.disconnect();
+      display.disconnect();
       motion.removeEventListener("change", request);
       document.removeEventListener("visibilitychange", visibility);
     },

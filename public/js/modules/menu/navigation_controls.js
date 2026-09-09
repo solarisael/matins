@@ -95,6 +95,7 @@ export const bind_navigation_controls = (menu_node) => {
     }
 
     target_node.addEventListener("click", () => {
+      const previous_view = menu_node.dataset.sideMenuView;
       const next_view = target_node.dataset.sideMenuViewTarget;
       const safe_view = set_menu_view_state(menu_node, next_view);
       write_cookie_value(SITE_MENU_VIEW_COOKIE_NAME, safe_view);
@@ -102,9 +103,10 @@ export const bind_navigation_controls = (menu_node) => {
       const active_view = menu_node.querySelector(
         `[data-side-menu-view-page="${safe_view}"]`,
       );
-      const focus_target = active_view?.querySelector(
-        "[data-side-menu-view-focus]",
-      );
+      const focus_target =
+        active_view?.querySelector(
+          `[data-side-menu-view-target="${previous_view}"]`,
+        ) ?? active_view?.querySelector("[data-side-menu-view-focus]");
       window.setTimeout(() => {
         if (focus_target instanceof HTMLElement) {
           focus_target.focus();
@@ -157,11 +159,16 @@ export const bind_navigation_controls = (menu_node) => {
 
     event.preventDefault();
     if (menu_node.dataset.sideMenuView !== SITE_MENU_VIEW_DEFAULT) {
+      const previous_view = menu_node.dataset.sideMenuView;
       const safe_view = set_menu_view_state(menu_node, SITE_MENU_VIEW_DEFAULT);
       write_cookie_value(SITE_MENU_VIEW_COOKIE_NAME, safe_view);
-      const focus_target = menu_node.querySelector(
-        `[data-side-menu-view-page="${safe_view}"] [data-side-menu-view-focus]`,
+      const active_view = menu_node.querySelector(
+        `[data-side-menu-view-page="${safe_view}"]`,
       );
+      const focus_target =
+        active_view?.querySelector(
+          `[data-side-menu-view-target="${previous_view}"]`,
+        ) ?? active_view?.querySelector("[data-side-menu-view-focus]");
       window.setTimeout(() => {
         if (focus_target instanceof HTMLElement) {
           focus_target.focus();

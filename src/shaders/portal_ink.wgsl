@@ -1,4 +1,5 @@
 import { simplex3d, fbmSimplex3d } from "@vgpu/wgsl-std/noise/simplex";
+import { linearToSrgb3 } from "@vgpu/wgsl-std/color";
 
 struct Ink {
   resolution: vec2f,
@@ -6,6 +7,7 @@ struct Ink {
   extent: vec2f,
   time: f32,
   reveal: f32,
+  sdr: f32,
 }
 @group(0) @binding(0) var<uniform> ink: Ink;
 
@@ -31,5 +33,7 @@ struct Ink {
   let color = vec3f(0.001, 0.0015, 0.0025)
     + vec3f(0.45, 0.55, 0.65) * wet_edge
     + vec3f(0.002, 0.003, 0.004) * clamp(body + 0.5, 0.0, 1.0);
-  return vec4f(color * pigment, pigment);
+  // Match the basin's 42% SDR lift before alpha multiplication.
+  let display = mix(color, linearToSrgb3(color), ink.sdr * 0.42);
+  return vec4f(display * pigment, pigment);
 }

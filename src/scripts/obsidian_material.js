@@ -78,6 +78,10 @@ export const create_obsidian_material = async (api, gpu, sources, format) => {
         depth_regions: Array.from({ length: 16 }, () => [0, 0, 0, 0]),
         depth_params: Array.from({ length: 16 }, () => [0, 0, 0, 0]),
         depth_count: 0,
+        sdr: 1,
+        button_regions: Array.from({ length: 16 }, () => [0, 0, 0, 0]),
+        button_bounds: [0, 0, 0, 0],
+        button_count: 0,
       },
     },
   });

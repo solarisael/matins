@@ -218,18 +218,75 @@ const user_measure_options = [
               </p>
             </div>
 
-            <button
-              class="sol__side_menu_state_link"
-              type="button"
-              data-side-menu-view-target="settings"
-              data-side-menu-view-focus
-              aria-controls="sol_side_menu_view_settings"
-            >
-              <span>
-                <strong>site settings</strong>
-              </span>
-              <span aria-hidden="true">›</span>
-            </button>
+            <div class="sol__side_menu_tools">
+              <button
+                class="sol__side_menu_icon"
+                type="button"
+                data-obsidian-button
+                data-depth-region
+                data-depth="60"
+                data-depth-padding="24"
+                data-depth-inner="0.5"
+                data-side-menu-view-target="settings"
+                data-side-menu-view-focus
+                aria-controls="sol_side_menu_view_settings"
+                aria-label="Site configuration"
+              >
+                <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                  <path
+                    d="M13.52 7.35 13.71 4.22 18.29 4.22 18.48 7.35 22.25 9.53 25.06 8.13 27.35 12.09 24.73 13.82 24.73 18.18 27.35 19.91 25.06 23.87 22.25 22.47 18.48 24.65 18.29 27.78 13.71 27.78 13.52 24.65 9.75 22.47 6.94 23.87 4.65 19.91 7.27 18.18 7.27 13.82 4.65 12.09 6.94 8.13 9.75 9.53Z"
+                  ></path>
+                  <circle cx="16" cy="16" r="4"></circle>
+                </svg>
+                <span class="sol__side_menu_icon_label" aria-hidden="true">
+                  Site configuration
+                </span>
+              </button>
+              <button
+                class="sol__side_menu_icon"
+                type="button"
+                data-side-menu-view-target="profile"
+                data-obsidian-button
+                data-depth-region
+                data-depth="60"
+                data-depth-padding="24"
+                data-depth-inner="0.5"
+                data-side-menu-view-focus
+                aria-controls="sol_side_menu_view_profile"
+                aria-label="Your profile"
+              >
+                <svg
+                  class="sol__side_menu_hood"
+                  viewBox="0 0 32 32"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <defs>
+                    <linearGradient
+                      id="sol_profile_hood_fill"
+                      x1="0"
+                      y1="0"
+                      x2="1"
+                      y2="1"
+                    >
+                      <stop offset="0" stop-color="#e0c58c"></stop>
+                      <stop offset="0.45" stop-color="#8b7650"></stop>
+                      <stop offset="1" stop-color="#302a25"></stop>
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M16 2.5C10.5 6.5 8 12 8 17L3.5 26.5Q16 30.5 28.5 26.5L24 17C24 12 21.5 6.5 16 2.5Z"
+                    fill="url(#sol_profile_hood_fill)"></path>
+                  <path
+                    d="M16 8.5C12 11 10.8 15 12.5 19L16 22.5 19.5 19C21.2 15 20 11 16 8.5Z"
+                    fill="#020305"></path>
+                  <path d="m12.5 19-4 8m11-8 4 8M16 22.5v5"></path>
+                </svg>
+                <span class="sol__side_menu_icon_label" aria-hidden="true">
+                  Your profile
+                </span>
+              </button>
+            </div>
           </section>
 
           <section
@@ -254,7 +311,7 @@ const user_measure_options = [
               </button>
               <div>
                 <p class="sol__text_kicker">inner chamber</p>
-                <h2 id="sol_side_menu_settings_title">Site settings</h2>
+                <h2 id="sol_side_menu_settings_title">Site configuration</h2>
               </div>
             </div>
 
@@ -279,6 +336,25 @@ const user_measure_options = [
                   }
                 </select>
               </label>
+
+              <label class="sol__side_menu_group" for="sol_side_menu_display">
+                <span class="sol__side_menu_label sol__text_caption"
+                  >display tuning</span
+                >
+                <select
+                  id="sol_side_menu_display"
+                  data-site-display-control
+                  aria-describedby="sol_side_menu_display_note"
+                >
+                  <option value="sdr">SDR</option>
+                  <option value="hdr">HDR display</option>
+                </select>
+              </label>
+              <p id="sol_side_menu_display_note" class="sol__side_menu_note">
+                SDR is the default. The HDR profile keeps the original darker
+                appearance. These profiles do not enable HDR output or change
+                your display settings.
+              </p>
 
               <label class="sol__side_menu_group" for="sol_side_menu_fx">
                 <span class="sol__side_menu_label sol__text_caption">
@@ -320,6 +396,41 @@ const user_measure_options = [
                   }
                 </select>
               </label>
+
+              <button
+                type="button"
+                class="sol__side_menu_reset"
+                data-side-menu-reset="site"
+              >
+                reset site configuration
+              </button>
+            </div>
+          </section>
+
+          <section
+            id="sol_side_menu_view_profile"
+            class="sol__side_menu_view"
+            data-side-menu-view-page="profile"
+            data-view-position="after"
+            aria-labelledby="sol_side_menu_profile_title"
+            aria-hidden="true"
+            inert
+          >
+            <div class="sol__side_menu_view_header">
+              <button
+                class="sol__side_menu_back"
+                type="button"
+                data-side-menu-view-target="root"
+                data-side-menu-view-focus
+                aria-controls="sol_side_menu_routes"
+              >
+                <span aria-hidden="true">‹</span>
+                back
+              </button>
+              <div>
+                <p class="sol__text_kicker">the visitor</p>
+                <h2 id="sol_side_menu_profile_title">Your profile</h2>
+              </div>
             </div>
 
             <RitualSeparator />
@@ -364,7 +475,7 @@ const user_measure_options = [
             <div class="sol__side_menu_settings_section">
               <h3>Local profile</h3>
               <p class="sol__side_menu_note">
-                Browser-local only. No fake login, no pretend cloud account.
+                Your profile and preferences stay in this browser.
               </p>
 
               <dl class="sol__side_menu_status_list">
@@ -381,9 +492,9 @@ const user_measure_options = [
               <button
                 type="button"
                 class="sol__side_menu_reset"
-                data-side-menu-reset
+                data-side-menu-reset="user"
               >
-                reset local preferences
+                reset reading preferences
               </button>
             </div>
           </section>

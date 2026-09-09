@@ -290,22 +290,63 @@ a.sol__side_menu_route[data-portal-selected="true"] {
     0 0 1rem #ffca59aa,
     0 0 1.8rem #ed9d2555;
 }
-.sol__side_menu_state_link {
-  width: auto;
-  min-height: 44px;
+.sol__side_menu_tools {
   display: flex;
-  align-items: center;
   justify-content: center;
   gap: 1rem;
   margin: 0.5rem auto 0;
-  padding: 0.65rem 0.8rem;
-  text-align: center;
-  border: 0;
-  background: transparent;
-  text-shadow: 0 1px 2px #000;
 }
-.sol__side_menu_state_link strong {
-  font-weight: 400;
+.sol__side_menu_icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: #030407;
+  color: var(--portal-gold);
+  cursor: pointer;
+  transition: color 180ms;
+}
+sol-obsidian-tablet[data-obsidian-renderer="webgpu"] .sol__side_menu_icon {
+  background: transparent;
+}
+.sol__side_menu_icon svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px #000);
+}
+.sol__side_menu_icon .sol__side_menu_hood {
+  width: 34px;
+  height: 34px;
+}
+.sol__side_menu_icon:is(:hover, :focus-visible) {
+  color: #ffe29a;
+}
+.sol__side_menu_icon_label {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.2rem;
+  color: #e5d8bc;
+  background: #090b0ef0;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  visibility: hidden;
+  pointer-events: none;
+}
+.sol__side_menu_icon:is(:hover, :focus-visible) .sol__side_menu_icon_label {
+  visibility: visible;
 }
 .sol__side_menu_touch_status {
   display: flow-root;
@@ -323,7 +364,7 @@ a.sol__side_menu_route[data-portal-selected="true"] {
   visibility: hidden;
 }
 #sol_side_menu
-  button:not(#sol_side_menu_trigger):not(.sol__side_menu_state_link):not(
+  button:not(#sol_side_menu_trigger):not(.sol__side_menu_icon):not(
     [data-side-menu-close]
   ),
 #sol_side_menu select {

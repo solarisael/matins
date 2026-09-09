@@ -1,4 +1,5 @@
 import { acquire_element_depth } from "./element_depth.js";
+import { create_obsidian_button_geometry } from "./obsidian_button_geometry.js";
 
 const load_obsidian_gpu = async (canvas, options) => {
   const { create_obsidian_gpu } = await import("./obsidian_gpu.js");
@@ -13,6 +14,7 @@ export const create_obsidian_runtime = ({
 }) => {
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const depth = acquire_element_depth(menu);
+  const button_geometry = create_obsidian_button_geometry(owner);
   const values = {
     resolution: [0, 0],
     tablet_size: [0, 0],
@@ -21,7 +23,11 @@ export const create_obsidian_runtime = ({
     halo: 0,
     rim: 0,
     time: 0,
+    sdr: 1,
     ...depth.field.uniforms,
+    button_regions: Array.from({ length: 16 }, () => [0, 0, 0, 0]),
+    button_bounds: [0, 0, 0, 0],
+    button_count: 0,
   };
   let backend = null,
     pending = false,
@@ -78,6 +84,9 @@ export const create_obsidian_runtime = ({
     values.halo = parseFloat(halo) * unit;
     values.rim =
       parseFloat(style.getPropertyValue("--obsidian-rim-width")) || 0;
+    values.sdr = document.documentElement.dataset.siteDisplay === "hdr" ? 0 : 1;
+
+    button_geometry.measure(tablet, values);
     dirty = false;
   };
   const request = () => {
@@ -185,14 +194,31 @@ export const create_obsidian_runtime = ({
     cancel();
     invalidate();
   };
-  const attributes = new MutationObserver(sync);
+  const attributes = new MutationObserver(invalidate);
   attributes.observe(menu, {
     attributes: true,
-    attributeFilter: ["data-side-menu-open", "data-portal-phase"],
+    attributeFilter: [
+      "data-side-menu-open",
+      "data-portal-phase",
+      "data-side-menu-view",
+    ],
+  });
+  const display = new MutationObserver(invalidate);
+  display.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: [
+      "data-site-display",
+      "data-site-scale",
+      "data-user-text",
+      "data-user-measure",
+    ],
   });
   const resize = new ResizeObserver(invalidate);
   resize.observe(owner);
   resize.observe(canvas);
+  button_geometry.observe(resize);
+  menu.addEventListener("scroll", invalidate, true);
+  document.fonts?.addEventListener("loadingdone", invalidate);
   motion.addEventListener("change", motion_change);
   menu.addEventListener("sol:depth-change", invalidate);
   document.addEventListener("visibilitychange", sync);
@@ -204,7 +230,10 @@ export const create_obsidian_runtime = ({
       disposed = true;
       cancel();
       attributes.disconnect();
+      display.disconnect();
       resize.disconnect();
+      menu.removeEventListener("scroll", invalidate, true);
+      document.fonts?.removeEventListener("loadingdone", invalidate);
       motion.removeEventListener("change", motion_change);
       document.removeEventListener("visibilitychange", sync);
       menu.removeEventListener("sol:depth-change", invalidate);

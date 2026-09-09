@@ -1,3 +1,5 @@
+import { linearToSrgb3 } from "@vgpu/wgsl-std/color";
+
 struct Glass {
   resolution: vec2f,
   tablet_size: vec2f,
@@ -9,6 +11,10 @@ struct Glass {
   depth_regions: array<vec4f, 16>,
   depth_params: array<vec4f, 16>,
   depth_count: f32,
+  sdr: f32,
+  button_regions: array<vec4f, 16>,
+  button_bounds: vec4f,
+  button_count: f32,
 }
 @group(0) @binding(0) var fracture_field: texture_2d<f32>;
 @group(0) @binding(1) var diffuse_field: texture_2d<f32>;
@@ -249,7 +255,23 @@ fn basin_surface(
   return surface;
 }
 
-@fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
+fn button_surface(
+  point: vec2f, radius: f32, q: f32, field_uv: vec2f, diffused: vec3f
+) -> vec4f {
+  let bevel = smoothstep(0.82, 1.0, q);
+  let normal = normalize(vec3f(point * mix(0.16, 0.8, bevel), 1.0));
+  let reflected = fracture_at(field_uv - normal.xy * 0.012).rgb;
+  let facing = max(dot(normal, normalize(vec3f(-0.6, -0.8, 0.9))), 0.0);
+  let glint = pow(facing, 12.0) * bevel;
+  let radiance = vec3f(0.0006, 0.0009, 0.0016)
+    + reflected * 0.02 + diffused * 0.004
+    + vec3f(0.016, 0.017, 0.019) * glint;
+  let coverage = 1.0 - smoothstep(1.0 - 0.8 / radius, 1.0, q);
+  let opacity = mix(0.4, 0.62, bevel);
+  return vec4f(film(radiance), coverage * opacity);
+}
+
+fn shade_glass(uv: vec2f) -> vec4f {
   let pixel = uv * glass.resolution;
   let origin = glass.tablet_origin;
   let local = pixel - origin;
@@ -344,6 +366,24 @@ fn basin_surface(
   }
 
   if (edge_distance > glass.rim) {
+    // Only the small union of visible controls needs the surface checks.
+    if (glass.button_count > 0.0
+      && all(local >= glass.button_bounds.xy) && all(local <= glass.button_bounds.zw)) {
+      for (var i = 0u; i < min(u32(glass.button_count), 16u); i++) {
+        let region = glass.button_regions[i];
+        let point = (local - region.xy) / region.zw;
+        if (any(abs(point) > vec2f(1.0))) {
+          continue;
+        }
+        let q = length(point);
+        if (q >= 1.0) {
+          continue;
+        }
+        let button = button_surface(point, min(region.z, region.w), q, field_uv, diffused);
+        let behind = basin_surface(local, edge_distance, edge_normal, field_uv, diffused);
+        return vec4f(mix(behind, button.rgb, button.a), 1.0);
+      }
+    }
     return vec4f(basin_surface(local, edge_distance, edge_normal, field_uv, diffused), 1.0);
   }
 
@@ -374,4 +414,15 @@ fn basin_surface(
     + diffused * 0.035) * (1.0 - crack * 0.88)
     + vec3f(0.18, 0.19, 0.22) * (shard_glint + chipped_lip * facing * 0.28);
   return vec4f(film(radiance), 1.0);
+}
+
+@fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
+  let color = shade_glass(uv);
+  if (glass.sdr < 0.5 || color.a <= 0.0) {
+    return color;
+  }
+  // Blend 42% toward sRGB encoding: a dark code value of 1 becomes about 6.
+  let linear = max(color.rgb / color.a, vec3f(0.0));
+  let display = mix(linear, linearToSrgb3(linear), 0.42);
+  return vec4f(display * color.a, color.a);
 }

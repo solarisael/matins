@@ -47,6 +47,9 @@ sol-obsidian-tablet,
 sol-obsidian-tablet {
   --obsidian-rim-width: 12px;
   --obsidian-halo: 4rem;
+  --obsidian-static-dark: #080b0f;
+  --obsidian-static-light: #14181f;
+  --obsidian-static-end: #070a0e;
   position: relative;
   z-index: 2;
   display: grid;
@@ -68,10 +71,21 @@ sol-obsidian-tablet {
       #00000099 65%,
       #10151c22
     ),
-    linear-gradient(100deg, #020407, #070a0f 50%, #010204);
+    linear-gradient(
+      100deg,
+      var(--obsidian-static-dark),
+      var(--obsidian-static-light) 50%,
+      var(--obsidian-static-end)
+    );
 }
 sol-obsidian-tablet[data-obsidian-renderer="webgpu"] {
   background: none;
+}
+
+:root[data-site-display="hdr"] sol-obsidian-tablet {
+  --obsidian-static-dark: #020407;
+  --obsidian-static-light: #070a0f;
+  --obsidian-static-end: #010204;
 }
 
 [data-obsidian-surface] {

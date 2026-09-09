@@ -20,6 +20,20 @@ The side menu supplies site navigation at every viewport width.
 Use `#sol_side_menu_trigger` to open the menu.
 The site has no top navbar or navbar preset classes.
 
+The cog opens Site configuration.
+The hooded figure opens Your profile, with reading preferences and local profile details.
+Each reset changes only the preferences in its own panel.
+Back and Escape return focus to the icon that opened the panel.
+
+Button surfaces share the obsidian shader, canvas, and lighting fields.
+The controls stay native HTML buttons.
+Without WebGPU, the buttons use a flat dark background.
+
+Mark buttons with `data-obsidian-button` before the tablet runtime starts.
+The shader supports 16 visible buttons within the tablet's scroll area.
+Each surface ends two CSS pixels inside its button bounds.
+The runtime updates geometry when the panel, scroll position, fonts, or layout changes.
+
 ## Page Transition Breath
 
 - Purpose: controls fade-out -> gap -> fade-in timing between page swaps.
@@ -202,4 +216,32 @@ Quick switch:
 
 ```html
 <html data-site-shell="strong"></html>
+```
+
+## Display Tuning
+
+- Purpose: keep the obsidian rim, water, and ink distinct on SDR displays.
+- Apply on: `html` through `data-site-display`.
+- Default: `sdr`.
+- Options:
+  - `sdr`: blend shader lighting toward sRGB encoding, with a restrained lift for dark detail.
+  - `hdr`: keep the original darker grade that Sol tuned with Windows HDR enabled.
+- Storage: the `site_display` cookie keeps the selection for 180 days.
+- Control: use Display tuning in Site configuration.
+- Reset: Reset site configuration restores `sdr`.
+
+Both profiles use standard-range canvas output.
+The HDR profile does not enable extended-range output or change system settings.
+The SDR profile blends 42% toward sRGB encoding before alpha multiplication at the canvas boundary.
+This artistic grade maps an original channel value of 1/255 to approximately 6/255.
+The lift is `0.42` in both `obsidian_glass.wgsl` and `portal_ink.wgsl`.
+
+Intermediate lighting fields stay unchanged.
+Static obsidian colors follow the selected profile when WebGPU is unavailable.
+
+Use the control to save a selection.
+Use this attribute for a temporary visual check:
+
+```html
+<html data-site-display="sdr"></html>
 ```
